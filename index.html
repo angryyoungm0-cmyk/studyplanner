@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#3b82f6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="StudyPlanner">
+    <title>StudyPlanner - 10th Board Exam Planner</title>
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">StudyPlanner</div>
+        <div class="nav-links">
+            <button class="nav-btn active" data-page="dashboard">Dashboard</button>
+            <button class="nav-btn" data-page="schedule">Today's Plan</button>
+            <button class="nav-btn" data-page="subjects">Subjects</button>
+            <button class="nav-btn" data-page="exams">Exams</button>
+            <button class="nav-btn" data-page="settings">Settings</button>
+        </div>
+        <div class="nav-hamburger" id="hamburger">&#9776;</div>
+    </nav>
+
+    <div class="mobile-menu" id="mobileMenu">
+        <button class="mobile-nav-btn active" data-page="dashboard">Dashboard</button>
+        <button class="mobile-nav-btn" data-page="schedule">Today's Plan</button>
+        <button class="mobile-nav-btn" data-page="subjects">Subjects</button>
+        <button class="mobile-nav-btn" data-page="exams">Exams</button>
+        <button class="mobile-nav-btn" data-page="settings">Settings</button>
+    </div>
+
+    <main class="container">
+        <!-- DASHBOARD PAGE -->
+        <section class="page active" id="page-dashboard">
+            <div class="welcome-banner">
+                <h1 id="greeting">Good Morning!</h1>
+                <p id="daysRemaining">Loading...</p>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="stat-days-left">--</div>
+                    <div class="stat-label">Days Left</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="stat-chapters-done">0</div>
+                    <div class="stat-label">Chapters Done</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="stat-chapters-total">0</div>
+                    <div class="stat-label">Total Chapters</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="stat-progress">0%</div>
+                    <div class="stat-label">Progress</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Today's Schedule</h2>
+                <div id="dashboard-today-schedule">
+                    <p class="empty-state">No schedule generated yet. Add your subjects and exams first!</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Weekly Progress</h2>
+                <div id="weekly-progress"></div>
+            </div>
+        </section>
+
+        <!-- TODAY'S PLAN PAGE -->
+        <section class="page" id="page-schedule">
+            <div class="page-header">
+                <h1>Today's Study Plan</h1>
+                <div class="header-actions">
+                    <button class="btn btn-secondary" id="prevDayBtn">&larr; Prev</button>
+                    <span id="currentDateDisplay"></span>
+                    <button class="btn btn-secondary" id="nextDayBtn">Next &rarr;</button>
+                </div>
+            </div>
+            <div class="daily-schedule" id="dailySchedule">
+                <p class="empty-state">No schedule for this day yet.</p>
+            </div>
+            <div class="card" style="margin-top:1rem;">
+                <h2>Quick Notes</h2>
+                <textarea id="dailyNotes" class="notes-area" placeholder="Write your study notes, doubts, or reminders for today..."></textarea>
+                <button class="btn btn-primary" id="saveNotesBtn">Save Notes</button>
+            </div>
+        </section>
+
+        <!-- SUBJECTS PAGE -->
+        <section class="page" id="page-subjects">
+            <div class="page-header">
+                <h1>My Subjects & Chapters</h1>
+                <button class="btn btn-primary" id="addSubjectBtn">+ Add Subject</button>
+            </div>
+            <div id="subjectsList"></div>
+
+            <!-- Add Subject Modal -->
+            <div class="modal" id="subjectModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 id="subjectModalTitle">Add Subject</h2>
+                        <button class="modal-close" id="closeSubjectModal">&times;</button>
+                    </div>
+                    <form id="subjectForm">
+                        <input type="hidden" id="editSubjectId" value="">
+                        <div class="form-group">
+                            <label>Subject Name</label>
+                            <input type="text" id="subjectName" required placeholder="e.g. Mathematics">
+                        </div>
+                        <div class="form-group">
+                            <label>Color</label>
+                            <input type="color" id="subjectColor" value="#4CAF50">
+                        </div>
+                        <div id="chaptersContainer">
+                            <label>Chapters</label>
+                            <div class="chapters-list" id="chaptersList"></div>
+                            <button type="button" class="btn btn-secondary" id="addChapterBtn">+ Add Chapter</button>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary" id="cancelSubjectBtn">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Save Subject</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- EXAMS PAGE -->
+        <section class="page" id="page-exams">
+            <div class="page-header">
+                <h1>My Exams</h1>
+                <button class="btn btn-primary" id="addExamBtn">+ Add Exam</button>
+            </div>
+            <div id="examsList"></div>
+
+            <!-- Add Exam Modal -->
+            <div class="modal" id="examModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Add Exam</h2>
+                        <button class="modal-close" id="closeExamModal">&times;</button>
+                    </div>
+                    <form id="examForm">
+                        <div class="form-group">
+                            <label>Exam Name</label>
+                            <input type="text" id="examName" required placeholder="e.g. Mathematics Board Exam">
+                        </div>
+                        <div class="form-group">
+                            <label>Subject</label>
+                            <select id="examSubject" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Exam Date</label>
+                            <input type="date" id="examDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Chapters to Cover (comma-separated numbers, or "all")</label>
+                            <input type="text" id="examChapters" placeholder="e.g. 1,2,3,5 or all" value="all">
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary" id="cancelExamBtn">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Save Exam</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- SETTINGS PAGE -->
+        <section class="page" id="page-settings">
+            <h1>Settings</h1>
+            <div class="card">
+                <h2>Study Preferences</h2>
+                <form id="settingsForm">
+                    <div class="form-group">
+                        <label>Daily Study Start Time</label>
+                        <input type="time" id="studyStartTime" value="07:00">
+                    </div>
+                    <div class="form-group">
+                        <label>Daily Study End Time</label>
+                        <input type="time" id="studyEndTime" value="22:00">
+                    </div>
+                    <div class="form-group">
+                        <label>School Hours (break in schedule)</label>
+                        <div class="time-range">
+                            <input type="time" id="schoolStart" value="10:30">
+                            <span>to</span>
+                            <input type="time" id="schoolEnd" value="18:20">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Study Session Duration (minutes)</label>
+                        <input type="number" id="sessionDuration" value="45" min="15" max="120">
+                    </div>
+                    <div class="form-group">
+                        <label>Break Duration (minutes)</label>
+                        <input type="number" id="breakDuration" value="10" min="5" max="30">
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="enableNotifications" checked>
+                            Enable Browser Notifications
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>Reminder Before Session (minutes)</label>
+                        <input type="number" id="reminderBefore" value="5" min="1" max="30">
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Save Settings</button>
+                        <button type="button" class="btn btn-danger" id="resetAllBtn">Reset All Data</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2>Generate Schedule</h2>
+                <p>Generate your complete study plan from today until your first exam.</p>
+                <button class="btn btn-primary" id="generateScheduleBtn">Generate Full Schedule</button>
+            </div>
+
+            <div class="card">
+                <h2>Export / Import Data</h2>
+                <div class="export-import">
+                    <button class="btn btn-secondary" id="exportBtn">Export Data</button>
+                    <button class="btn btn-secondary" id="importBtn">Import Data</button>
+                    <input type="file" id="importFile" accept=".json" style="display:none">
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js').catch(() => {});
+        }
+    </script>
+</body>
+</html>
