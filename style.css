@@ -607,6 +607,24 @@ body {
     color: var(--text-secondary);
 }
 
+.type-holiday {
+    background: rgba(236, 72, 153, 0.15);
+    color: #ec4899;
+}
+
+.holiday-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.9rem;
+}
+
+.holiday-item:last-child {
+    border-bottom: none;
+}
+
 .schedule-actions {
     display: flex;
     align-items: center;

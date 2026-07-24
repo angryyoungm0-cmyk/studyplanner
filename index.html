@@ -237,6 +237,33 @@
             </div>
 
             <div class="card">
+                <h2>Holidays (Full Day Study)</h2>
+                <p style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:1rem;">Mark days as holidays to get more study sessions (no school break)</p>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="weekendsAsHolidays">
+                        All Sundays are holidays
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label>Add Holiday Date</label>
+                    <div style="display:flex;gap:0.5rem;">
+                        <input type="date" id="holidayDateInput" style="flex:1">
+                        <button type="button" class="btn btn-primary" id="addHolidayBtn">Add</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Holiday Study Session (minutes)</label>
+                    <input type="number" id="holidaySessionDuration" value="60" min="30" max="120">
+                </div>
+                <div class="form-group">
+                    <label>Holiday Break Duration (minutes)</label>
+                    <input type="number" id="holidayBreakDuration" value="15" min="5" max="30">
+                </div>
+                <div id="holidaysList"></div>
+            </div>
+
+            <div class="card">
                 <h2>Generate Schedule</h2>
                 <p>Generate your complete study plan from today until your first exam.</p>
                 <button class="btn btn-primary" id="generateScheduleBtn">Generate Full Schedule</button>

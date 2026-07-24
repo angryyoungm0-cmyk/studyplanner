@@ -19,6 +19,7 @@
         return {
             subjects: [],
             exams: [],
+            holidays: [],
             schedule: {},
             completedTasks: {},
             notes: {},
@@ -30,7 +31,9 @@
                 sessionDuration: 45,
                 breakDuration: 10,
                 enableNotifications: true,
-                reminderBefore: 5
+                reminderBefore: 5,
+                holidaySessionDuration: 60,
+                holidayBreakDuration: 15
             }
         };
     }
@@ -222,7 +225,9 @@
 
     // --- SCHEDULE PAGE ---
     function renderSchedulePage() {
-        document.getElementById('currentDateDisplay').textContent = formatDate(viewingDate);
+        const holiday = isHoliday(viewingDate);
+        const holidayLabel = holiday ? ' <span style="color:#ec4899;font-size:0.8rem;">[Holiday - Full Day Study]</span>' : '';
+        document.getElementById('currentDateDisplay').innerHTML = formatDate(viewingDate) + holidayLabel;
         const container = document.getElementById('dailySchedule');
         const daySchedule = appData.schedule[viewingDate];
         const completed = appData.completedTasks[viewingDate] || {};
@@ -640,72 +645,110 @@
             const dateStr = toLocalDateStr(d);
             const daySchedule = [];
             let currentMinute = studyStart;
+            const holiday = isHoliday(dateStr);
+            const hSessionLen = holiday ? (s.holidaySessionDuration || 60) : sessionLen;
+            const hBreakLen = holiday ? (s.holidayBreakDuration || 15) : breakLen;
 
-            // Morning session (before school)
-            while (currentMinute < schoolStart && taskIndex < allTasks.length) {
-                const sessionEnd = currentMinute + sessionLen;
-                if (sessionEnd > schoolStart) break;
-
-                const task = allTasks[taskIndex];
+            if (holiday) {
+                // Holiday: study full day, no school
                 daySchedule.push({
-                    time: minutesToTime(currentMinute),
-                    title: `${task.subjectName} - Ch ${task.chapterIndex + 1}`,
-                    description: task.chapterName,
-                    type: 'study',
-                    taskId: taskIndex,
-                    subjectColor: task.subjectColor
+                    time: minutesToTime(studyStart),
+                    title: 'Holiday - Full Day Study',
+                    description: 'No school today - extra study time!',
+                    type: 'type-rest'
                 });
-                currentMinute += sessionLen + breakLen;
-                if (currentMinute < schoolStart && taskIndex < allTasks.length) {
-                    daySchedule.push({
-                        time: minutesToTime(currentMinute - breakLen),
-                        title: 'Break',
-                        description: 'Take a short break',
-                        type: 'break'
-                    });
-                }
-                taskIndex++;
-            }
+                currentMinute = studyStart;
 
-            // School time
-            if (schoolStart >= currentMinute || schoolStart < studyEnd) {
+                while (currentMinute < studyEnd && taskIndex < allTasks.length) {
+                    const sessionEnd = currentMinute + hSessionLen;
+                    if (sessionEnd > studyEnd) break;
+
+                    const task = allTasks[taskIndex];
+                    daySchedule.push({
+                        time: minutesToTime(currentMinute),
+                        title: `${task.subjectName} - Ch ${task.chapterIndex + 1}`,
+                        description: task.chapterName,
+                        type: 'study',
+                        taskId: taskIndex,
+                        subjectColor: task.subjectColor
+                    });
+                    currentMinute += hSessionLen;
+                    if (currentMinute < studyEnd) {
+                        daySchedule.push({
+                            time: minutesToTime(currentMinute),
+                            title: 'Break',
+                            description: 'Rest, stretch, hydrate',
+                            type: 'break'
+                        });
+                        currentMinute += hBreakLen;
+                    }
+                    taskIndex++;
+                }
+            } else {
+                // Regular day: morning session before school
+                while (currentMinute < schoolStart && taskIndex < allTasks.length) {
+                    const sessionEnd = currentMinute + sessionLen;
+                    if (sessionEnd > schoolStart) break;
+
+                    const task = allTasks[taskIndex];
+                    daySchedule.push({
+                        time: minutesToTime(currentMinute),
+                        title: `${task.subjectName} - Ch ${task.chapterIndex + 1}`,
+                        description: task.chapterName,
+                        type: 'study',
+                        taskId: taskIndex,
+                        subjectColor: task.subjectColor
+                    });
+                    currentMinute += sessionLen + breakLen;
+                    if (currentMinute < schoolStart && taskIndex < allTasks.length) {
+                        daySchedule.push({
+                            time: minutesToTime(currentMinute - breakLen),
+                            title: 'Break',
+                            description: 'Take a short break',
+                            type: 'break'
+                        });
+                    }
+                    taskIndex++;
+                }
+
+                // School time
                 daySchedule.push({
                     time: minutesToTime(Math.max(currentMinute, schoolStart)),
                     title: 'School',
                     description: 'Focus in school - pay attention to what you study later',
                     type: 'school'
                 });
-            }
 
-            // Evening session (after school)
-            currentMinute = Math.max(schoolEnd, currentMinute);
-            while (currentMinute < studyEnd && taskIndex < allTasks.length) {
-                const sessionEnd = currentMinute + sessionLen;
-                if (sessionEnd > studyEnd) break;
+                // Evening session after school
+                currentMinute = Math.max(schoolEnd, currentMinute);
+                while (currentMinute < studyEnd && taskIndex < allTasks.length) {
+                    const sessionEnd = currentMinute + sessionLen;
+                    if (sessionEnd > studyEnd) break;
 
-                const task = allTasks[taskIndex];
-                daySchedule.push({
-                    time: minutesToTime(currentMinute),
-                    title: `${task.subjectName} - Ch ${task.chapterIndex + 1}`,
-                    description: task.chapterName,
-                    type: 'study',
-                    taskId: taskIndex,
-                    subjectColor: task.subjectColor
-                });
-                currentMinute += sessionLen;
-                if (currentMinute < studyEnd) {
+                    const task = allTasks[taskIndex];
                     daySchedule.push({
                         time: minutesToTime(currentMinute),
-                        title: 'Break',
-                        description: 'Rest, stretch, hydrate',
-                        type: 'break'
+                        title: `${task.subjectName} - Ch ${task.chapterIndex + 1}`,
+                        description: task.chapterName,
+                        type: 'study',
+                        taskId: taskIndex,
+                        subjectColor: task.subjectColor
                     });
-                    currentMinute += breakLen;
+                    currentMinute += sessionLen;
+                    if (currentMinute < studyEnd) {
+                        daySchedule.push({
+                            time: minutesToTime(currentMinute),
+                            title: 'Break',
+                            description: 'Rest, stretch, hydrate',
+                            type: 'break'
+                        });
+                        currentMinute += breakLen;
+                    }
+                    taskIndex++;
                 }
-                taskIndex++;
             }
 
-            // End of day - add rest
+            // End of day wind down
             if (daySchedule.length > 0) {
                 daySchedule.push({
                     time: minutesToTime(Math.min(currentMinute, studyEnd - 30)),
@@ -742,6 +785,10 @@
         document.getElementById('breakDuration').value = s.breakDuration;
         document.getElementById('enableNotifications').checked = s.enableNotifications;
         document.getElementById('reminderBefore').value = s.reminderBefore;
+        document.getElementById('holidaySessionDuration').value = s.holidaySessionDuration || 60;
+        document.getElementById('holidayBreakDuration').value = s.holidayBreakDuration || 15;
+        document.getElementById('weekendsAsHolidays').checked = appData.holidays.includes('weekends');
+        renderHolidays();
     }
 
     document.getElementById('settingsForm').addEventListener('submit', (e) => {
@@ -754,12 +801,73 @@
             sessionDuration: parseInt(document.getElementById('sessionDuration').value),
             breakDuration: parseInt(document.getElementById('breakDuration').value),
             enableNotifications: document.getElementById('enableNotifications').checked,
-            reminderBefore: parseInt(document.getElementById('reminderBefore').value)
+            reminderBefore: parseInt(document.getElementById('reminderBefore').value),
+            holidaySessionDuration: parseInt(document.getElementById('holidaySessionDuration').value) || 60,
+            holidayBreakDuration: parseInt(document.getElementById('holidayBreakDuration').value) || 15
         };
+
+        if (document.getElementById('weekendsAsHolidays').checked) {
+            if (!appData.holidays.includes('weekends')) appData.holidays.push('weekends');
+        } else {
+            appData.holidays = appData.holidays.filter(h => h !== 'weekends');
+        }
+
         saveData(appData);
         setupNotifications();
         showToast('Settings saved!');
     });
+
+    // --- HOLIDAYS ---
+    function isHoliday(dateStr) {
+        if (appData.holidays.includes(dateStr)) return true;
+        if (appData.holidays.includes('weekends')) {
+            const d = parseDate(dateStr);
+            if (d.getDay() === 0) return true;
+        }
+        return false;
+    }
+
+    function renderHolidays() {
+        const container = document.getElementById('holidaysList');
+        if (!container) return;
+        const specific = appData.holidays.filter(h => h !== 'weekends');
+        if (specific.length === 0) {
+            container.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;margin-top:0.5rem;">No specific holidays added yet.</p>';
+            return;
+        }
+        let html = '<div style="margin-top:0.5rem;">';
+        specific.sort().forEach(h => {
+            html += `<div class="holiday-item">
+                <span>${formatDate(h)}</span>
+                <button class="btn btn-sm btn-danger remove-holiday" data-date="${h}">&times;</button>
+            </div>`;
+        });
+        html += '</div>';
+        container.innerHTML = html;
+
+        container.querySelectorAll('.remove-holiday').forEach(btn => {
+            btn.addEventListener('click', () => {
+                appData.holidays = appData.holidays.filter(h => h !== btn.dataset.date);
+                saveData(appData);
+                renderHolidays();
+            });
+        });
+    }
+
+    const addHolidayBtn = document.getElementById('addHolidayBtn');
+    if (addHolidayBtn) {
+        addHolidayBtn.addEventListener('click', () => {
+            const input = document.getElementById('holidayDateInput');
+            const date = input.value;
+            if (!date) { showToast('Pick a date first', 'error'); return; }
+            if (appData.holidays.includes(date)) { showToast('Already a holiday', 'error'); return; }
+            appData.holidays.push(date);
+            saveData(appData);
+            input.value = '';
+            renderHolidays();
+            showToast('Holiday added!');
+        });
+    }
 
     document.getElementById('resetAllBtn').addEventListener('click', () => {
         if (confirm('This will delete ALL your data - subjects, exams, schedules, everything. Are you sure?')) {
