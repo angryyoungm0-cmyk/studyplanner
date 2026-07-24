@@ -147,6 +147,36 @@ body {
     font-size: 1rem;
 }
 
+.install-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    background: var(--bg-card);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 0.8rem 1rem;
+    margin-bottom: 1rem;
+}
+
+.install-banner-text {
+    flex: 1;
+}
+
+.install-banner-text strong {
+    display: block;
+    font-size: 0.95rem;
+}
+
+.install-banner-text p {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+#notifCard .btn {
+    margin-right: 0.5rem;
+}
+
 /* Stats Grid */
 .stats-grid {
     display: grid;

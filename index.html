@@ -41,6 +41,22 @@
                 <p id="daysRemaining">Loading...</p>
             </div>
 
+            <div class="install-banner" id="installBanner" style="display:none">
+                <div class="install-banner-text">
+                    <strong>Install StudyPlanner</strong>
+                    <p>Add to home screen for the best experience with notifications</p>
+                </div>
+                <button class="btn btn-primary" id="installBtn">Install</button>
+                <button class="btn btn-secondary" id="dismissInstall">&times;</button>
+            </div>
+
+            <div class="card" id="notifCard">
+                <h2>Notifications</h2>
+                <p style="color:var(--text-secondary);margin-bottom:0.8rem;font-size:0.9rem;">Get reminders before each study session</p>
+                <button class="btn btn-primary" id="enableNotifBtn">Enable Notifications</button>
+                <span id="notifStatus" style="margin-left:0.5rem;font-size:0.85rem;"></span>
+            </div>
+
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-number" id="stat-days-left">--</div>

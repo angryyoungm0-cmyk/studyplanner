@@ -1,10 +1,13 @@
-const CACHE_NAME = 'studyplanner-v1';
+const CACHE_NAME = 'studyplanner-v2';
+const BASE = self.location.pathname.replace(/\/[^/]*$/, '/');
 const ASSETS = [
-    '/',
-    '/index.html',
-    '/style.css',
-    '/app.js',
-    '/manifest.webmanifest'
+    BASE,
+    BASE + 'index.html',
+    BASE + 'style.css',
+    BASE + 'app.js',
+    BASE + 'manifest.webmanifest',
+    BASE + 'icon-192.png',
+    BASE + 'icon-512.png'
 ];
 
 self.addEventListener('install', (e) => {

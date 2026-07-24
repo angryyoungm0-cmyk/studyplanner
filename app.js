@@ -855,14 +855,101 @@
         });
     }
 
+    // --- PWA INSTALL ---
+    let deferredPrompt = null;
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        document.getElementById('installBanner').style.display = 'flex';
+    });
+
+    window.addEventListener('appinstalled', () => {
+        deferredPrompt = null;
+        document.getElementById('installBanner').style.display = 'none';
+    });
+
+    const installBtn = document.getElementById('installBtn');
+    if (installBtn) {
+        installBtn.addEventListener('click', async () => {
+            if (!deferredPrompt) {
+                showToast('Use your browser menu > "Add to Home Screen"', 'error');
+                return;
+            }
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            deferredPrompt = null;
+            document.getElementById('installBanner').style.display = 'none';
+            if (outcome === 'accepted') {
+                showToast('App installed! Open it from your home screen.');
+            }
+        });
+    }
+
+    const dismissBtn = document.getElementById('dismissInstall');
+    if (dismissBtn) {
+        dismissBtn.addEventListener('click', () => {
+            document.getElementById('installBanner').style.display = 'none';
+        });
+    }
+
+    // --- NOTIFICATION BUTTON ---
+    function updateNotifStatus() {
+        const statusEl = document.getElementById('notifStatus');
+        const btn = document.getElementById('enableNotifBtn');
+        if (!statusEl || !btn) return;
+
+        if (!('Notification' in window)) {
+            statusEl.textContent = 'Not supported on this browser';
+            statusEl.style.color = 'var(--danger)';
+            btn.style.display = 'none';
+            return;
+        }
+
+        if (Notification.permission === 'granted') {
+            statusEl.textContent = 'Enabled';
+            statusEl.style.color = 'var(--success)';
+            btn.textContent = 'Notifications On';
+            btn.disabled = true;
+            btn.style.opacity = '0.6';
+        } else if (Notification.permission === 'denied') {
+            statusEl.textContent = 'Blocked - enable in browser settings';
+            statusEl.style.color = 'var(--danger)';
+            btn.style.display = 'none';
+        } else {
+            statusEl.textContent = '';
+            btn.textContent = 'Enable Notifications';
+            btn.disabled = false;
+            btn.style.opacity = '1';
+        }
+    }
+
+    const enableNotifBtn = document.getElementById('enableNotifBtn');
+    if (enableNotifBtn) {
+        enableNotifBtn.addEventListener('click', async () => {
+            if (!('Notification' in window)) {
+                showToast('Notifications not supported on this browser', 'error');
+                return;
+            }
+            const result = await Notification.requestPermission();
+            updateNotifStatus();
+            if (result === 'granted') {
+                showToast('Notifications enabled!');
+                setupNotifications();
+                new Notification('StudyPlanner', { body: 'Notifications are working! You will be reminded before each session.' });
+            } else if (result === 'denied') {
+                showToast('Notifications blocked. Enable them in browser settings.', 'error');
+            }
+        });
+    }
+
     // --- INIT ---
     renderDashboard();
+    updateNotifStatus();
     setupNotifications();
 
-    // Check every minute for notifications
     setInterval(setupNotifications, 60000);
 
-    // Close modals on outside click
     document.querySelectorAll('.modal').forEach(modal => {
         modal.addEventListener('click', (e) => {
             if (e.target === modal) modal.classList.remove('open');

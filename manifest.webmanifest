@@ -1,8 +1,9 @@
 {
-    "name": "StudyPlanner - 10th Board Exam Planner",
+    "name": "StudyPlanner",
     "short_name": "StudyPlanner",
-    "description": "Plan your board exam preparation with daily schedules and reminders",
-    "start_url": "/",
+    "description": "10th Board Exam Study Planner",
+    "start_url": "./",
+    "scope": "./",
     "display": "standalone",
     "background_color": "#0f172a",
     "theme_color": "#3b82f6",
