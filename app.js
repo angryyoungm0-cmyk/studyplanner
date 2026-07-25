@@ -93,7 +93,7 @@
     }
 
     // --- NAVIGATION ---
-    document.querySelectorAll('.nav-btn, .mobile-nav-btn').forEach(btn => {
+    document.querySelectorAll('.nav-btn, .mobile-nav-btn, .bottom-nav-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             navigateTo(btn.dataset.page);
         });
@@ -109,7 +109,9 @@
         document.getElementById(`page-${page}`).classList.add('active');
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.page === page));
         document.querySelectorAll('.mobile-nav-btn').forEach(b => b.classList.toggle('active', b.dataset.page === page));
+        document.querySelectorAll('.bottom-nav-btn').forEach(b => b.classList.toggle('active', b.dataset.page === page));
         document.getElementById('mobileMenu').classList.remove('open');
+        window.scrollTo(0, 0);
         renderPage(page);
     }
 
