@@ -1175,6 +1175,7 @@
         document.getElementById('sp-chapter-select').style.display = 'block';
         document.getElementById('sp-chat').style.display = 'none';
         document.getElementById('spSubjectTitle').textContent = sub.name;
+        document.getElementById('spChapterIcon').textContent = sub.icon;
 
         const grid = document.getElementById('spChapterGrid');
         let html = '';
@@ -1201,21 +1202,31 @@
         document.getElementById('sp-chapter-select').style.display = 'none';
         document.getElementById('sp-chat').style.display = 'flex';
         document.getElementById('spChatTitle').textContent = ch.name;
-        document.getElementById('spChatSub').textContent = sub.name + ' \u2022 StudyPlayer AI';
+        document.getElementById('spChatSub').textContent = sub.name + ' - StudyPlayer AI';
 
         spChatHistory = [];
         const msgs = document.getElementById('spMessages');
-        msgs.innerHTML = `<div class="sp-msg sp-msg-ai">
-            <div class="sp-msg-avatar">SP</div>
-            <div class="sp-msg-bubble">Hi! I'm StudyPlayer. Ask me anything about <strong>${ch.name}</strong> from Maharashtra State Board 10th ${sub.name}. I can explain concepts, solve problems, and help with doubts.</div>
+        msgs.innerHTML = `<div class="sp-welcome-msg">
+            <div class="sp-welcome-avatar">SP</div>
+            <div class="sp-welcome-text">
+                <h3>Hi there! I'm StudyPlayer</h3>
+                <p>Ask me anything about <strong>${ch.name}</strong> from Maharashtra Board 10th ${sub.name}.</p>
+                <div class="sp-suggestions" id="spSuggestions">
+                    <button class="sp-suggestion-chip">Explain the main concept</button>
+                    <button class="sp-suggestion-chip">Give me practice problems</button>
+                    <button class="sp-suggestion-chip">Summarize this chapter</button>
+                    <button class="sp-suggestion-chip">What are the important formulas?</button>
+                </div>
+            </div>
         </div>`;
-    }
 
-    document.getElementById('spBackSubjects').addEventListener('click', () => {
-        document.getElementById('sp-subject-select').style.display = 'block';
-        document.getElementById('sp-chapter-select').style.display = 'none';
-        document.getElementById('sp-chat').style.display = 'none';
-    });
+        msgs.querySelectorAll('.sp-suggestion-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                document.getElementById('spInput').value = chip.textContent;
+                sendSpMessage();
+            });
+        });
+    }
 
     document.getElementById('spBackChapters').addEventListener('click', () => {
         document.getElementById('sp-subject-select').style.display = 'none';

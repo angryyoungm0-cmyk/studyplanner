@@ -975,11 +975,38 @@ body {
 }
 
 /* StudyPlayer */
-.sp-header {
+#page-studyplayer {
     display: flex;
+    flex-direction: column;
+}
+
+.sp-hero {
+    text-align: center;
+    padding: 1.5rem 0 1rem;
+}
+
+.sp-hero h1 {
+    font-size: 1.5rem;
+    margin-bottom: 0.2rem;
+}
+
+.sp-hero p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.sp-hero-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), #7c3aed);
+    color: white;
+    display: inline-flex;
     align-items: center;
-    gap: 1rem;
-    margin-bottom: 1rem;
+    justify-content: center;
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 0.6rem;
 }
 
 .sp-grid {
@@ -1013,30 +1040,134 @@ body {
     font-weight: 500;
 }
 
+/* Chat Header */
 .sp-chat-header {
     display: flex;
     align-items: center;
-    gap: 0.8rem;
-    padding: 0.8rem 0;
+    gap: 0.6rem;
+    padding: 0.6rem 0;
     border-bottom: 1px solid var(--border);
     margin-bottom: 0;
 }
 
+.sp-back-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0.4rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.sp-back-btn:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.sp-chat-header-info {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.sp-chat-header-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), #7c3aed);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+/* Chat Messages */
 .sp-chat-messages {
     flex: 1;
     overflow-y: auto;
     padding: 1rem 0;
     display: flex;
     flex-direction: column;
-    gap: 0.8rem;
+    gap: 1rem;
     min-height: 300px;
     max-height: 55vh;
 }
 
+.sp-welcome-msg {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 1rem 0;
+}
+
+.sp-welcome-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), #7c3aed);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.8rem;
+}
+
+.sp-welcome-text h3 {
+    font-size: 1.1rem;
+    margin-bottom: 0.3rem;
+}
+
+.sp-welcome-text p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    max-width: 400px;
+}
+
+.sp-suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+.sp-suggestion-chip {
+    padding: 0.5rem 1rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--text-primary);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.sp-suggestion-chip:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-light);
+}
+
+/* Messages */
 .sp-msg {
     display: flex;
-    gap: 0.5rem;
-    max-width: 85%;
+    gap: 0.6rem;
+    max-width: 90%;
+    animation: spFadeIn 0.3s ease;
+}
+
+@keyframes spFadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .sp-msg-user {
@@ -1051,13 +1182,13 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.65rem;
+    font-size: 0.6rem;
     font-weight: 700;
     flex-shrink: 0;
 }
 
 .sp-msg-ai .sp-msg-avatar {
-    background: var(--accent);
+    background: linear-gradient(135deg, var(--accent), #7c3aed);
     color: white;
 }
 
@@ -1067,47 +1198,49 @@ body {
 }
 
 .sp-msg-bubble {
-    padding: 0.7rem 1rem;
-    border-radius: 12px;
+    padding: 0.8rem 1rem;
+    border-radius: 16px;
     font-size: 0.9rem;
-    line-height: 1.5;
+    line-height: 1.6;
 }
 
 .sp-msg-ai .sp-msg-bubble {
     background: var(--bg-card);
     border: 1px solid var(--border);
+    border-top-left-radius: 4px;
 }
 
 .sp-msg-user .sp-msg-bubble {
     background: var(--accent);
     color: white;
+    border-top-right-radius: 4px;
 }
 
 .sp-msg-bubble code {
     background: rgba(0,0,0,0.3);
-    padding: 0.1rem 0.3rem;
-    border-radius: 3px;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
     font-size: 0.85rem;
 }
 
 .sp-msg-bubble pre {
     background: rgba(0,0,0,0.3);
-    padding: 0.6rem;
-    border-radius: 6px;
+    padding: 0.7rem;
+    border-radius: 8px;
     overflow-x: auto;
-    margin: 0.4rem 0;
+    margin: 0.5rem 0;
     font-size: 0.8rem;
 }
 
 .sp-typing {
     display: flex;
-    gap: 4px;
-    padding: 0.7rem 1rem;
+    gap: 5px;
+    padding: 0.8rem 1rem;
 }
 
 .sp-typing span {
-    width: 6px;
-    height: 6px;
+    width: 7px;
+    height: 7px;
     background: var(--text-muted);
     border-radius: 50%;
     animation: spBounce 1.4s infinite ease-in-out;
@@ -1121,26 +1254,65 @@ body {
     40% { transform: scale(1); }
 }
 
-.sp-chat-input {
-    display: flex;
-    gap: 0.5rem;
-    padding: 0.8rem 0;
+/* Input Area */
+.sp-input-area {
+    padding: 0.6rem 0 0;
     border-top: 1px solid var(--border);
 }
 
-.sp-chat-input input {
-    flex: 1;
-    padding: 0.6rem 1rem;
-    background: var(--bg-primary);
+.sp-input-wrapper {
+    display: flex;
+    align-items: center;
+    background: var(--bg-card);
     border: 1px solid var(--border);
-    border-radius: 20px;
+    border-radius: 24px;
+    padding: 0.3rem;
+    transition: border-color 0.2s;
+}
+
+.sp-input-wrapper:focus-within {
+    border-color: var(--accent);
+}
+
+.sp-input-wrapper input {
+    flex: 1;
+    padding: 0.6rem 0.8rem;
+    background: none;
+    border: none;
     color: var(--text-primary);
     font-size: 0.9rem;
 }
 
-.sp-chat-input input:focus {
+.sp-input-wrapper input:focus {
     outline: none;
-    border-color: var(--accent);
+}
+
+.sp-input-wrapper input::placeholder {
+    color: var(--text-muted);
+}
+
+.sp-send-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: none;
+    background: var(--accent);
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.sp-send-btn:hover {
+    background: var(--accent-hover);
+    transform: scale(1.05);
+}
+
+.sp-send-btn:active {
+    transform: scale(0.95);
 }
 
 .sp-no-key {
@@ -1161,5 +1333,10 @@ body {
     .sp-chat-messages {
         min-height: 40vh;
         max-height: 60vh;
+    }
+
+    .sp-suggestions {
+        flex-direction: column;
+        align-items: center;
     }
 }

@@ -187,36 +187,59 @@
         <!-- STUDYPLAYER PAGE -->
         <section class="page" id="page-studyplayer">
             <div id="sp-subject-select">
-                <h1>StudyPlayer</h1>
-                <p style="color:var(--text-secondary);margin-bottom:1rem;">Your AI study buddy for Maharashtra Board 10th. Pick a subject to start.</p>
+                <div class="sp-hero">
+                    <div class="sp-hero-icon">SP</div>
+                    <h1>StudyPlayer</h1>
+                    <p>Your AI study buddy for Maharashtra Board 10th</p>
+                </div>
+                <h3 style="color:var(--text-secondary);margin-bottom:0.8rem;font-weight:500;">Choose a subject</h3>
                 <div class="sp-grid" id="spSubjectGrid"></div>
             </div>
 
             <div id="sp-chapter-select" style="display:none">
-                <div class="sp-header">
-                    <button class="btn btn-secondary" id="spBackSubjects">&larr; Back</button>
-                    <h2 id="spSubjectTitle"></h2>
+                <div class="sp-hero">
+                    <div class="sp-hero-icon" id="spChapterIcon"></div>
+                    <h1 id="spSubjectTitle"></h1>
+                    <p>Pick a chapter to start learning</p>
                 </div>
                 <div class="sp-grid" id="spChapterGrid"></div>
             </div>
 
             <div id="sp-chat" style="display:none">
                 <div class="sp-chat-header">
-                    <button class="btn btn-secondary" id="spBackChapters">&larr;</button>
-                    <div>
-                        <div id="spChatTitle" style="font-weight:600;"></div>
-                        <div id="spChatSub" style="font-size:0.75rem;color:var(--text-muted);">StudyPlayer AI</div>
+                    <button class="sp-back-btn" id="spBackChapters">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                    </button>
+                    <div class="sp-chat-header-info">
+                        <div class="sp-chat-header-avatar">SP</div>
+                        <div>
+                            <div id="spChatTitle" style="font-weight:600;font-size:0.95rem;"></div>
+                            <div id="spChatSub" style="font-size:0.72rem;color:var(--text-muted);">StudyPlayer AI - Maharashtra Board 10th</div>
+                        </div>
                     </div>
                 </div>
                 <div class="sp-chat-messages" id="spMessages">
-                    <div class="sp-msg sp-msg-ai">
-                        <div class="sp-msg-avatar">SP</div>
-                        <div class="sp-msg-bubble">Hi! I'm StudyPlayer. Ask me anything about this chapter. I know the Maharashtra State Board 10th syllabus.</div>
+                    <div class="sp-welcome-msg">
+                        <div class="sp-welcome-avatar">SP</div>
+                        <div class="sp-welcome-text">
+                            <h3>Hello! I'm StudyPlayer</h3>
+                            <p>Ask me anything about this chapter. I can explain concepts, solve problems, and help with your doubts.</p>
+                            <div class="sp-suggestions" id="spSuggestions">
+                                <button class="sp-suggestion-chip">Explain the main concept</button>
+                                <button class="sp-suggestion-chip">Give me practice problems</button>
+                                <button class="sp-suggestion-chip">Summarize this chapter</button>
+                                <button class="sp-suggestion-chip">What are the important formulas?</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="sp-chat-input">
-                    <input type="text" id="spInput" placeholder="Type your doubt..." autocomplete="off">
-                    <button class="btn btn-primary" id="spSendBtn">Send</button>
+                <div class="sp-input-area">
+                    <div class="sp-input-wrapper">
+                        <input type="text" id="spInput" placeholder="Ask StudyPlayer anything..." autocomplete="off">
+                        <button class="sp-send-btn" id="spSendBtn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                        </button>
+                    </div>
                 </div>
             </div>
         </section>
