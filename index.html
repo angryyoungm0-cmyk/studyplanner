@@ -20,6 +20,7 @@
             <button class="nav-btn" data-page="schedule">Today's Plan</button>
             <button class="nav-btn" data-page="subjects">Subjects</button>
             <button class="nav-btn" data-page="exams">Exams</button>
+            <button class="nav-btn" data-page="generate">Generate</button>
             <button class="nav-btn" data-page="settings">Settings</button>
         </div>
         <div class="nav-hamburger" id="hamburger">&#9776;</div>
@@ -30,6 +31,7 @@
         <button class="mobile-nav-btn" data-page="schedule">Today's Plan</button>
         <button class="mobile-nav-btn" data-page="subjects">Subjects</button>
         <button class="mobile-nav-btn" data-page="exams">Exams</button>
+        <button class="mobile-nav-btn" data-page="generate">Generate</button>
         <button class="mobile-nav-btn" data-page="settings">Settings</button>
     </div>
 
@@ -48,13 +50,6 @@
                 </div>
                 <button class="btn btn-primary" id="installBtn">Install</button>
                 <button class="btn btn-secondary" id="dismissInstall">&times;</button>
-            </div>
-
-            <div class="card" id="notifCard">
-                <h2>Notifications</h2>
-                <p style="color:var(--text-secondary);margin-bottom:0.8rem;font-size:0.9rem;">Get reminders before each study session</p>
-                <button class="btn btn-primary" id="enableNotifBtn">Enable Notifications</button>
-                <span id="notifStatus" style="margin-left:0.5rem;font-size:0.85rem;"></span>
             </div>
 
             <div class="stats-grid">
@@ -117,7 +112,6 @@
             </div>
             <div id="subjectsList"></div>
 
-            <!-- Add Subject Modal -->
             <div class="modal" id="subjectModal">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -156,7 +150,6 @@
             </div>
             <div id="examsList"></div>
 
-            <!-- Add Exam Modal -->
             <div class="modal" id="examModal">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -189,12 +182,13 @@
             </div>
         </section>
 
-        <!-- SETTINGS PAGE -->
-        <section class="page" id="page-settings">
-            <h1>Settings</h1>
+        <!-- GENERATE SCHEDULE PAGE -->
+        <section class="page" id="page-generate">
+            <h1>Generate Schedule</h1>
+
             <div class="card">
-                <h2>Study Preferences</h2>
-                <form id="settingsForm">
+                <h2>Timing Settings</h2>
+                <form id="timingForm">
                     <div class="form-group">
                         <label>Daily Study Start Time</label>
                         <input type="time" id="studyStartTime" value="07:00">
@@ -219,19 +213,8 @@
                         <label>Break Duration (minutes)</label>
                         <input type="number" id="breakDuration" value="10" min="5" max="30">
                     </div>
-                    <div class="form-group">
-                        <label>
-                            <input type="checkbox" id="enableNotifications" checked>
-                            Enable Browser Notifications
-                        </label>
-                    </div>
-                    <div class="form-group">
-                        <label>Reminder Before Session (minutes)</label>
-                        <input type="number" id="reminderBefore" value="5" min="1" max="30">
-                    </div>
                     <div class="form-actions">
-                        <button type="submit" class="btn btn-primary">Save Settings</button>
-                        <button type="button" class="btn btn-danger" id="resetAllBtn">Reset All Data</button>
+                        <button type="submit" class="btn btn-primary">Save Timing</button>
                     </div>
                 </form>
             </div>
@@ -264,17 +247,44 @@
             </div>
 
             <div class="card">
-                <h2>Generate Schedule</h2>
-                <p>Generate your complete study plan from today until your first exam.</p>
+                <h2>Generate Your Schedule</h2>
+                <p style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:1rem;">Creates a daily study plan from today until your first exam.</p>
                 <button class="btn btn-primary" id="generateScheduleBtn">Generate Full Schedule</button>
+            </div>
+        </section>
+
+        <!-- SETTINGS PAGE -->
+        <section class="page" id="page-settings">
+            <h1>Settings</h1>
+
+            <div class="card">
+                <h2>Notifications</h2>
+                <p style="color:var(--text-secondary);margin-bottom:0.8rem;font-size:0.9rem;">Get reminders before each study session</p>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="enableNotifications" checked>
+                        Enable Browser Notifications
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label>Reminder Before Session (minutes)</label>
+                    <input type="number" id="reminderBefore" value="5" min="1" max="30">
+                </div>
+                <div style="display:flex;align-items:center;gap:0.8rem;margin-top:0.5rem;">
+                    <button class="btn btn-primary" id="enableNotifBtn">Enable Notifications</button>
+                    <span id="notifStatus" style="font-size:0.85rem;"></span>
+                </div>
             </div>
 
             <div class="card">
-                <h2>Export / Import Data</h2>
+                <h2>Data</h2>
                 <div class="export-import">
                     <button class="btn btn-secondary" id="exportBtn">Export Data</button>
                     <button class="btn btn-secondary" id="importBtn">Import Data</button>
                     <input type="file" id="importFile" accept=".json" style="display:none">
+                </div>
+                <div style="margin-top:1rem;">
+                    <button class="btn btn-danger" id="resetAllBtn">Reset All Data</button>
                 </div>
             </div>
         </section>
@@ -285,7 +295,7 @@
     <script src="app.js"></script>
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js').catch(() => {});
+            navigator.serviceWorker.register('./sw.js').catch(() => {});
         }
     </script>
 </body>

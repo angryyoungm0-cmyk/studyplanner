@@ -119,6 +119,7 @@
             case 'schedule': renderSchedulePage(); break;
             case 'subjects': renderSubjects(); break;
             case 'exams': renderExams(); break;
+            case 'generate': loadGenerateForm(); break;
             case 'settings': loadSettingsForm(); break;
         }
     }
@@ -774,8 +775,8 @@
         renderDashboard();
     });
 
-    // --- SETTINGS ---
-    function loadSettingsForm() {
+    // --- GENERATE SCHEDULE PAGE ---
+    function loadGenerateForm() {
         const s = appData.settings;
         document.getElementById('studyStartTime').value = s.studyStartTime;
         document.getElementById('studyEndTime').value = s.studyEndTime;
@@ -783,28 +784,22 @@
         document.getElementById('schoolEnd').value = s.schoolEnd;
         document.getElementById('sessionDuration').value = s.sessionDuration;
         document.getElementById('breakDuration').value = s.breakDuration;
-        document.getElementById('enableNotifications').checked = s.enableNotifications;
-        document.getElementById('reminderBefore').value = s.reminderBefore;
         document.getElementById('holidaySessionDuration').value = s.holidaySessionDuration || 60;
         document.getElementById('holidayBreakDuration').value = s.holidayBreakDuration || 15;
         document.getElementById('weekendsAsHolidays').checked = appData.holidays.includes('weekends');
         renderHolidays();
     }
 
-    document.getElementById('settingsForm').addEventListener('submit', (e) => {
+    document.getElementById('timingForm').addEventListener('submit', (e) => {
         e.preventDefault();
-        appData.settings = {
-            studyStartTime: document.getElementById('studyStartTime').value,
-            studyEndTime: document.getElementById('studyEndTime').value,
-            schoolStart: document.getElementById('schoolStart').value,
-            schoolEnd: document.getElementById('schoolEnd').value,
-            sessionDuration: parseInt(document.getElementById('sessionDuration').value),
-            breakDuration: parseInt(document.getElementById('breakDuration').value),
-            enableNotifications: document.getElementById('enableNotifications').checked,
-            reminderBefore: parseInt(document.getElementById('reminderBefore').value),
-            holidaySessionDuration: parseInt(document.getElementById('holidaySessionDuration').value) || 60,
-            holidayBreakDuration: parseInt(document.getElementById('holidayBreakDuration').value) || 15
-        };
+        appData.settings.studyStartTime = document.getElementById('studyStartTime').value;
+        appData.settings.studyEndTime = document.getElementById('studyEndTime').value;
+        appData.settings.schoolStart = document.getElementById('schoolStart').value;
+        appData.settings.schoolEnd = document.getElementById('schoolEnd').value;
+        appData.settings.sessionDuration = parseInt(document.getElementById('sessionDuration').value);
+        appData.settings.breakDuration = parseInt(document.getElementById('breakDuration').value);
+        appData.settings.holidaySessionDuration = parseInt(document.getElementById('holidaySessionDuration').value) || 60;
+        appData.settings.holidayBreakDuration = parseInt(document.getElementById('holidayBreakDuration').value) || 15;
 
         if (document.getElementById('weekendsAsHolidays').checked) {
             if (!appData.holidays.includes('weekends')) appData.holidays.push('weekends');
@@ -813,8 +808,43 @@
         }
 
         saveData(appData);
-        setupNotifications();
-        showToast('Settings saved!');
+        showToast('Timing settings saved!');
+    });
+
+    // --- SETTINGS PAGE ---
+    function loadSettingsForm() {
+        document.getElementById('enableNotifications').checked = appData.settings.enableNotifications;
+        document.getElementById('reminderBefore').value = appData.settings.reminderBefore;
+        updateNotifStatus();
+    }
+
+    document.getElementById('enableNotifBtn').addEventListener('click', async () => {
+        if (!('Notification' in window)) {
+            showToast('Notifications not supported on this browser', 'error');
+            return;
+        }
+        const result = await Notification.requestPermission();
+        updateNotifStatus();
+        if (result === 'granted') {
+            appData.settings.enableNotifications = true;
+            document.getElementById('enableNotifications').checked = true;
+            saveData(appData);
+            showToast('Notifications enabled!');
+            setupNotifications();
+            new Notification('StudyPlanner', { body: 'Notifications are working! You will be reminded before each session.' });
+        } else if (result === 'denied') {
+            showToast('Notifications blocked. Enable them in browser settings.', 'error');
+        }
+    });
+
+    document.getElementById('enableNotifications').addEventListener('change', (e) => {
+        appData.settings.enableNotifications = e.target.checked;
+        saveData(appData);
+    });
+
+    document.getElementById('reminderBefore').addEventListener('change', (e) => {
+        appData.settings.reminderBefore = parseInt(e.target.value);
+        saveData(appData);
     });
 
     // --- HOLIDAYS ---
@@ -1001,7 +1031,7 @@
         });
     }
 
-    // --- NOTIFICATION BUTTON ---
+    // --- NOTIFICATION STATUS ---
     function updateNotifStatus() {
         const statusEl = document.getElementById('notifStatus');
         const btn = document.getElementById('enableNotifBtn');
@@ -1030,25 +1060,6 @@
             btn.disabled = false;
             btn.style.opacity = '1';
         }
-    }
-
-    const enableNotifBtn = document.getElementById('enableNotifBtn');
-    if (enableNotifBtn) {
-        enableNotifBtn.addEventListener('click', async () => {
-            if (!('Notification' in window)) {
-                showToast('Notifications not supported on this browser', 'error');
-                return;
-            }
-            const result = await Notification.requestPermission();
-            updateNotifStatus();
-            if (result === 'granted') {
-                showToast('Notifications enabled!');
-                setupNotifications();
-                new Notification('StudyPlanner', { body: 'Notifications are working! You will be reminded before each session.' });
-            } else if (result === 'denied') {
-                showToast('Notifications blocked. Enable them in browser settings.', 'error');
-            }
-        });
     }
 
     // --- INIT ---
