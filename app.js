@@ -1266,22 +1266,25 @@ Rules:
 - Keep answers concise but complete
 - If the student seems confused, try explaining in a different way`;
 
-        spChatHistory.push({ role: 'user', parts: [{ text }] });
+        spChatHistory.push({ role: 'user', content: text });
 
         try {
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+            const messages = [
+                { role: 'system', content: systemPrompt },
+                ...spChatHistory
+            ];
+
+            const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
                 body: JSON.stringify({
-                    systemInstruction: { parts: [{ text: systemPrompt }] },
-                    contents: spChatHistory.map(m => ({
-                        role: m.role,
-                        parts: m.parts
-                    })),
-                    generationConfig: {
-                        temperature: 0.7,
-                        maxOutputTokens: 2048
-                    }
+                    model: 'llama-3.1-8b-instant',
+                    messages: messages,
+                    temperature: 0.7,
+                    max_tokens: 2048
                 })
             });
 
@@ -1293,8 +1296,8 @@ Rules:
                 throw new Error(data.error?.message || 'API request failed');
             }
 
-            const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Sorry, I could not generate a response.';
-            spChatHistory.push({ role: 'model', parts: [{ text: aiText }] });
+            const aiText = data.choices?.[0]?.message?.content || 'Sorry, I could not generate a response.';
+            spChatHistory.push({ role: 'assistant', content: aiText });
 
             msgs.innerHTML += `<div class="sp-msg sp-msg-ai">
                 <div class="sp-msg-avatar">SP</div>
