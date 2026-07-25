@@ -122,6 +122,7 @@
             case 'subjects': renderSubjects(); break;
             case 'exams': renderExams(); break;
             case 'generate': loadGenerateForm(); break;
+            case 'studyplayer': renderStudyPlayer(); break;
             case 'settings': loadSettingsForm(); break;
         }
     }
@@ -817,6 +818,7 @@
     function loadSettingsForm() {
         document.getElementById('enableNotifications').checked = appData.settings.enableNotifications;
         document.getElementById('reminderBefore').value = appData.settings.reminderBefore;
+        document.getElementById('geminiApiKey').value = appData.settings.geminiApiKey || '';
         updateNotifStatus();
     }
 
@@ -1032,6 +1034,312 @@
             document.getElementById('installBanner').style.display = 'none';
         });
     }
+
+    // --- STUDYPLAYER AI ---
+    const SP_SYLLABUS = {
+        mathematics: {
+            name: 'Mathematics',
+            icon: '\u{1F4D0}',
+            chapters: [
+                { id: 'linear-equations', name: 'Linear Equations in Two Variables' },
+                { id: 'quadratic', name: 'Quadratic Equations' },
+                { id: 'arithmetic-progression', name: 'Arithmetic Progression' },
+                { id: 'financial-planning', name: 'Financial Planning' },
+                { id: 'probability', name: 'Probability' },
+                { id: 'statistics', name: 'Statistics' },
+                { id: 'coordinate-geometry', name: 'Coordinate Geometry' },
+                { id: 'triangles', name: 'Similarity' },
+                { id: 'circle', name: 'Circle''},
+                { id: 'geometric-construction', name: 'Geometric Construction' },
+                { id: 'trigonometry', name: 'Trigonometry' },
+                { id: 'mensuration', name: 'Mensuration' }
+            ]
+        },
+        science: {
+            name: 'Science',
+            icon: '\u{1F52C}',
+            chapters: [
+                { id: 'gravitation', name: 'Gravitation' },
+                { id: 'work-energy', name: 'Work and Energy' },
+                { id: 'sound', name: 'Sound' },
+                { id: 'effect-of-heat', name: 'Effect of Heat' },
+                { id: 'refraction', name: 'Refraction of Light' },
+                { id: 'electrostatics', name: 'Electrostatics' },
+                { id: 'current-electricity', name: 'Current Electricity' },
+                { id: 'elements-compounds', name: 'Elements and Compounds' },
+                { id: 'chemical-reactions', name: 'Chemical Reactions and Equations' },
+                { id: 'acid-base-salt', name: 'Acids, Bases and Salts' },
+                { id: 'metallurgy', name: 'Metallurgy' },
+                { id: 'carbon-compounds', name: 'Carbon Compounds' },
+                { id: 'cell', name: 'The Cell and Cell Division' },
+                { id: 'heredity', name: 'Heredity and Evolution' },
+                { id: 'life-processes', name: 'Life Processes' },
+                { id: 'control-coordination', name: 'Control and Coordination' },
+                { id: 'organisation-tissues', name: 'Organisation in Living Organisms' },
+                { id: 'environmental-changes', name: 'Environmental Changes' },
+                { id: 'man-made-materials', name: 'Man-made Materials' },
+                { id: 'micro-organisms', name: 'Micro-organisms' }
+            ]
+        },
+        english: {
+            name: 'English',
+            icon: '\u{1F4D6}',
+            chapters: [
+                { id: 'prose-1', name: 'Prose - Unit 1' },
+                { id: 'prose-2', name: 'Prose - Unit 2' },
+                { id: 'prose-3', name: 'Prose - Unit 3' },
+                { id: 'prose-4', name: 'Prose - Unit 4' },
+                { id: 'prose-5', name: 'Prose - Unit 5' },
+                { id: 'poetry-1', name: 'Poetry - Unit 1' },
+                { id: 'poetry-2', name: 'Poetry - Unit 2' },
+                { id: 'poetry-3', name: 'Poetry - Unit 3' },
+                { id: 'poetry-4', name: 'Poetry - Unit 4' },
+                { id: 'poetry-5', name: 'Poetry - Unit 5' },
+                { id: 'writing-skills', name: 'Writing Skills' },
+                { id: 'grammar', name: 'Grammar' }
+            ]
+        },
+        socialscience: {
+            name: 'Social Science',
+            icon: '\u{1F30D}',
+            chapters: [
+                { id: 'history-1', name: 'History - The Rise of Nationalism in Europe' },
+                { id: 'history-2', name: 'History - Nationalism in India' },
+                { id: 'history-3', name: 'History - The Making of a Global World' },
+                { id: 'history-4', name: 'History - The Age of Industrialisation' },
+                { id: 'history-5', name: 'History - Print Culture and the Modern World' },
+                { id: 'geography-1', name: 'Geography - Resources and Development' },
+                { id: 'geography-2', name: 'Geography - Forest and Wildlife Resources' },
+                { id: 'geography-3', name: 'Geography - Water Resources' },
+                { id: 'geography-4', name: 'Geography - Agriculture' },
+                { id: 'geography-5', name: 'Geography - Minerals and Energy Resources' },
+                { id: 'geography-6', name: 'Geography - Manufacturing Industries' },
+                { id: 'pol-sci-1', name: 'Political Science - Power Sharing' },
+                { id: 'pol-sci-2', name: 'Political Science - Federalism' },
+                { id: 'pol-sci-3', name: 'Political Science - Democracy and Diversity' },
+                { id: 'pol-sci-4', name: 'Political Science - Gender, Religion and Caste' },
+                { id: 'economics-1', name: 'Economics - Development' },
+                { id: 'economics-2', name: 'Economics - Sectors of the Indian Economy' },
+                { id: 'economics-3', name: 'Economics - Money and Credit' }
+            ]
+        },
+        marathi: {
+            name: 'Marathi',
+            icon: '\u{1F4DD}',
+            chapters: [
+                { id: 'marathi-prose', name: 'Gadya (Prose)' },
+                { id: 'marathi-poetry', name: 'Padya (Poetry)' },
+                { id: 'marathi-vyakaran', name: 'Vyakaran (Grammar)' },
+                { id: 'marathi-lekhan', name: 'Lekhan (Writing)' }
+            ]
+        },
+        hindi: {
+            name: 'Hindi',
+            icon: '\u{1F4DD}',
+            chapters: [
+                { id: 'hindi-gadya', name: 'Gadya (Prose)' },
+                { id: 'hindi-padya', name: 'Padya (Poetry)' },
+                { id: 'hindi-vyakaran', name: 'Vyakaran (Grammar)' },
+                { id: 'hindi-lekhan', name: 'Lekhan (Writing)' }
+            ]
+        }
+    };
+
+    let spSubject = null;
+    let spChapter = null;
+    let spChatHistory = [];
+
+    function renderStudyPlayer() {
+        const grid = document.getElementById('spSubjectGrid');
+        if (!grid) return;
+        let html = '';
+        for (const [key, sub] of Object.entries(SP_SYLLABUS)) {
+            html += `<div class="sp-card" data-subject="${key}">
+                <div class="sp-card-icon">${sub.icon}</div>
+                <div class="sp-card-name">${sub.name}</div>
+            </div>`;
+        }
+        grid.innerHTML = html;
+
+        grid.querySelectorAll('.sp-card').forEach(card => {
+            card.addEventListener('click', () => {
+                spSubject = card.dataset.subject;
+                showSpChapters();
+            });
+        });
+    }
+
+    function showSpChapters() {
+        const sub = SP_SYLLABUS[spSubject];
+        document.getElementById('sp-subject-select').style.display = 'none';
+        document.getElementById('sp-chapter-select').style.display = 'block';
+        document.getElementById('sp-chat').style.display = 'none';
+        document.getElementById('spSubjectTitle').textContent = sub.name;
+
+        const grid = document.getElementById('spChapterGrid');
+        let html = '';
+        sub.chapters.forEach(ch => {
+            html += `<div class="sp-card" data-chapter="${ch.id}">
+                <div class="sp-card-name">${ch.name}</div>
+            </div>`;
+        });
+        grid.innerHTML = html;
+
+        grid.querySelectorAll('.sp-card').forEach(card => {
+            card.addEventListener('click', () => {
+                spChapter = card.dataset.chapter;
+                startSpChat();
+            });
+        });
+    }
+
+    function startSpChat() {
+        const sub = SP_SYLLABUS[spSubject];
+        const ch = sub.chapters.find(c => c.id === spChapter);
+
+        document.getElementById('sp-subject-select').style.display = 'none';
+        document.getElementById('sp-chapter-select').style.display = 'none';
+        document.getElementById('sp-chat').style.display = 'flex';
+        document.getElementById('spChatTitle').textContent = ch.name;
+        document.getElementById('spChatSub').textContent = sub.name + ' \u2022 StudyPlayer AI';
+
+        spChatHistory = [];
+        const msgs = document.getElementById('spMessages');
+        msgs.innerHTML = `<div class="sp-msg sp-msg-ai">
+            <div class="sp-msg-avatar">SP</div>
+            <div class="sp-msg-bubble">Hi! I'm StudyPlayer. Ask me anything about <strong>${ch.name}</strong> from Maharashtra State Board 10th ${sub.name}. I can explain concepts, solve problems, and help with doubts.</div>
+        </div>`;
+    }
+
+    document.getElementById('spBackSubjects').addEventListener('click', () => {
+        document.getElementById('sp-subject-select').style.display = 'block';
+        document.getElementById('sp-chapter-select').style.display = 'none';
+        document.getElementById('sp-chat').style.display = 'none';
+    });
+
+    document.getElementById('spBackChapters').addEventListener('click', () => {
+        document.getElementById('sp-subject-select').style.display = 'none';
+        document.getElementById('sp-chapter-select').style.display = 'block';
+        document.getElementById('sp-chat').style.display = 'none';
+    });
+
+    async function sendSpMessage() {
+        const input = document.getElementById('spInput');
+        const text = input.value.trim();
+        if (!text) return;
+
+        const apiKey = (appData.settings.geminiApiKey || '').trim();
+        if (!apiKey) {
+            showToast('Please enter your Gemini API key in Settings first!', 'error');
+            return;
+        }
+
+        input.value = '';
+        const msgs = document.getElementById('spMessages');
+
+        // Add user message
+        msgs.innerHTML += `<div class="sp-msg sp-msg-user">
+            <div class="sp-msg-avatar">You</div>
+            <div class="sp-msg-bubble">${escapeHtml(text)}</div>
+        </div>`;
+
+        // Add typing indicator
+        msgs.innerHTML += `<div class="sp-msg sp-msg-ai" id="spTyping">
+            <div class="sp-msg-avatar">SP</div>
+            <div class="sp-msg-bubble"><div class="sp-typing"><span></span><span></span><span></span></div></div>
+        </div>`;
+        msgs.scrollTop = msgs.scrollHeight;
+
+        const sub = SP_SYLLABUS[spSubject];
+        const ch = sub.chapters.find(c => c.id === spChapter);
+
+        const systemPrompt = `You are StudyPlayer, an AI tutor for Maharashtra State Board 10th grade students. You are helping with the subject "${sub.name}" and specifically the chapter "${ch.name}".
+
+Rules:
+- Answer in simple, clear language that a 10th grader can understand
+- Use examples and step-by-step explanations
+- For math problems, show complete working
+- Relate concepts to real life when possible
+- If asked about something outside this chapter, politely redirect to the relevant topic
+- Use markdown for formatting (bold, lists, code blocks for math)
+- Be encouraging and supportive
+- Keep answers concise but complete
+- If the student seems confused, try explaining in a different way`;
+
+        spChatHistory.push({ role: 'user', parts: [{ text }] });
+
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    systemInstruction: { parts: [{ text: systemPrompt }] },
+                    contents: spChatHistory.map(m => ({
+                        role: m.role,
+                        parts: m.parts
+                    })),
+                    generationConfig: {
+                        temperature: 0.7,
+                        maxOutputTokens: 2048
+                    }
+                })
+            });
+
+            const data = await response.json();
+            const typingEl = document.getElementById('spTyping');
+            if (typingEl) typingEl.remove();
+
+            if (!response.ok) {
+                throw new Error(data.error?.message || 'API request failed');
+            }
+
+            const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Sorry, I could not generate a response.';
+            spChatHistory.push({ role: 'model', parts: [{ text: aiText }] });
+
+            msgs.innerHTML += `<div class="sp-msg sp-msg-ai">
+                <div class="sp-msg-avatar">SP</div>
+                <div class="sp-msg-bubble">${formatAiResponse(aiText)}</div>
+            </div>`;
+        } catch (err) {
+            const typingEl = document.getElementById('spTyping');
+            if (typingEl) typingEl.remove();
+            msgs.innerHTML += `<div class="sp-msg sp-msg-ai">
+                <div class="sp-msg-avatar">SP</div>
+                <div class="sp-msg-bubble" style="color:var(--danger);">Error: ${escapeHtml(err.message)}</div>
+            </div>`;
+        }
+
+        msgs.scrollTop = msgs.scrollHeight;
+    }
+
+    function escapeHtml(str) {
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function formatAiResponse(text) {
+        return text
+            .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
+            .replace(/`([^`]+)`/g, '<code>$1</code>')
+            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.+?)\*/g, '<em>$1</em>')
+            .replace(/\n/g, '<br>');
+    }
+
+    document.getElementById('spSendBtn').addEventListener('click', sendSpMessage);
+    document.getElementById('spInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendSpMessage();
+        }
+    });
+
+    // --- API KEY ---
+    document.getElementById('saveApiKeyBtn').addEventListener('click', () => {
+        const key = document.getElementById('geminiApiKey').value.trim();
+        appData.settings.geminiApiKey = key;
+        saveData(appData);
+        showToast(key ? 'API key saved!' : 'API key cleared');
+    });
 
     // --- NOTIFICATION STATUS ---
     function updateNotifStatus() {

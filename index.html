@@ -18,6 +18,7 @@
         <div class="nav-links">
             <button class="nav-btn active" data-page="dashboard">Dashboard</button>
             <button class="nav-btn" data-page="schedule">Today's Plan</button>
+            <button class="nav-btn" data-page="studyplayer">StudyPlayer</button>
             <button class="nav-btn" data-page="subjects">Subjects</button>
             <button class="nav-btn" data-page="exams">Exams</button>
             <button class="nav-btn" data-page="generate">Generate</button>
@@ -29,6 +30,7 @@
     <div class="mobile-menu" id="mobileMenu">
         <button class="mobile-nav-btn active" data-page="dashboard">Dashboard</button>
         <button class="mobile-nav-btn" data-page="schedule">Today's Plan</button>
+        <button class="mobile-nav-btn" data-page="studyplayer">StudyPlayer</button>
         <button class="mobile-nav-btn" data-page="subjects">Subjects</button>
         <button class="mobile-nav-btn" data-page="exams">Exams</button>
         <button class="mobile-nav-btn" data-page="generate">Generate</button>
@@ -182,6 +184,43 @@
             </div>
         </section>
 
+        <!-- STUDYPLAYER PAGE -->
+        <section class="page" id="page-studyplayer">
+            <div id="sp-subject-select">
+                <h1>StudyPlayer</h1>
+                <p style="color:var(--text-secondary);margin-bottom:1rem;">Your AI study buddy for Maharashtra Board 10th. Pick a subject to start.</p>
+                <div class="sp-grid" id="spSubjectGrid"></div>
+            </div>
+
+            <div id="sp-chapter-select" style="display:none">
+                <div class="sp-header">
+                    <button class="btn btn-secondary" id="spBackSubjects">&larr; Back</button>
+                    <h2 id="spSubjectTitle"></h2>
+                </div>
+                <div class="sp-grid" id="spChapterGrid"></div>
+            </div>
+
+            <div id="sp-chat" style="display:none">
+                <div class="sp-chat-header">
+                    <button class="btn btn-secondary" id="spBackChapters">&larr;</button>
+                    <div>
+                        <div id="spChatTitle" style="font-weight:600;"></div>
+                        <div id="spChatSub" style="font-size:0.75rem;color:var(--text-muted);">StudyPlayer AI</div>
+                    </div>
+                </div>
+                <div class="sp-chat-messages" id="spMessages">
+                    <div class="sp-msg sp-msg-ai">
+                        <div class="sp-msg-avatar">SP</div>
+                        <div class="sp-msg-bubble">Hi! I'm StudyPlayer. Ask me anything about this chapter. I know the Maharashtra State Board 10th syllabus.</div>
+                    </div>
+                </div>
+                <div class="sp-chat-input">
+                    <input type="text" id="spInput" placeholder="Type your doubt..." autocomplete="off">
+                    <button class="btn btn-primary" id="spSendBtn">Send</button>
+                </div>
+            </div>
+        </section>
+
         <!-- GENERATE SCHEDULE PAGE -->
         <section class="page" id="page-generate">
             <h1>Generate Schedule</h1>
@@ -277,6 +316,17 @@
             </div>
 
             <div class="card">
+                <h2>StudyPlayer AI</h2>
+                <p style="color:var(--text-secondary);margin-bottom:0.8rem;font-size:0.9rem;">Enter your free Gemini API key to use the AI chatbot</p>
+                <div class="form-group">
+                    <label>Gemini API Key</label>
+                    <input type="password" id="geminiApiKey" placeholder="Paste your API key here">
+                </div>
+                <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:0.8rem;">Get your free key at <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--accent);">aistudio.google.com/apikey</a> (1 min, no credit card)</p>
+                <button class="btn btn-primary" id="saveApiKeyBtn">Save API Key</button>
+            </div>
+
+            <div class="card">
                 <h2>Data</h2>
                 <div class="export-import">
                     <button class="btn btn-secondary" id="exportBtn">Export Data</button>
@@ -299,13 +349,13 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             <span>Plan</span>
         </button>
+        <button class="bottom-nav-btn" data-page="studyplayer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span>AI Chat</span>
+        </button>
         <button class="bottom-nav-btn" data-page="subjects">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
             <span>Subjects</span>
-        </button>
-        <button class="bottom-nav-btn" data-page="exams">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-            <span>Exams</span>
         </button>
         <button class="bottom-nav-btn" data-page="generate">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
