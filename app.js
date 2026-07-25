@@ -1049,7 +1049,7 @@
                 { id: 'statistics', name: 'Statistics' },
                 { id: 'coordinate-geometry', name: 'Coordinate Geometry' },
                 { id: 'triangles', name: 'Similarity' },
-                { id: 'circle', name: 'Circle''},
+                { id: 'circle', name: 'Circles' },
                 { id: 'geometric-construction', name: 'Geometric Construction' },
                 { id: 'trigonometry', name: 'Trigonometry' },
                 { id: 'mensuration', name: 'Mensuration' }
