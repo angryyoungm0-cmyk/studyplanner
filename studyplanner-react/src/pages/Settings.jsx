@@ -1,10 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
+import { useTheme } from '../context/ThemeContext';
+import { useI18n } from '../context/I18nContext';
 import { todayStr } from '../hooks/useStudyData';
 import { animate, stagger } from 'animejs';
+import jsPDF from 'jspdf';
 
 export function Settings() {
   const { data, updateData, showToast, resetAllData, navigateTo } = useApp();
+  const { theme, toggleTheme } = useTheme();
+  const { lang, setLanguage, t } = useI18n();
   const s = data.settings;
   const containerRef = useRef(null);
 
@@ -29,7 +34,7 @@ export function Settings() {
       ...prev,
       settings: { ...prev.settings, enableNotifications: enableNotif, reminderBefore: parseInt(reminderBefore) }
     }));
-    showToast('Notification settings saved!');
+    showToast(t('saveSettings'));
   };
 
   const saveApiKey = () => {
@@ -37,7 +42,7 @@ export function Settings() {
       ...prev,
       settings: { ...prev.settings, groqApiKey: groqKey.trim() }
     }));
-    showToast(groqKey.trim() ? 'API key saved!' : 'API key cleared');
+    showToast(groqKey.trim() ? t('saveApiKey') + '!' : t('saveApiKey'));
   };
 
   const requestNotificationPermission = async () => {
@@ -52,7 +57,7 @@ export function Settings() {
         ...prev,
         settings: { ...prev.settings, enableNotifications: true }
       }));
-      showToast('Notifications enabled!');
+      showToast(t('enableNotifications') + '!');
       new Notification('StudyPlanner', { body: 'Notifications are working!' });
     } else if (result === 'denied') {
       showToast('Notifications blocked. Enable them in browser settings.', 'error');
@@ -67,7 +72,7 @@ export function Settings() {
     a.download = `studyplanner-backup-${todayStr()}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    showToast('Data exported!');
+    showToast(t('exportData') + '!');
   };
 
   const handleImport = (e) => {
@@ -79,7 +84,7 @@ export function Settings() {
         const imported = JSON.parse(ev.target.result);
         if (imported.subjects && imported.settings) {
           updateData(imported);
-          showToast('Data imported successfully!');
+          showToast(t('importData') + '!');
         } else {
           showToast('Invalid data file', 'error');
         }
@@ -100,49 +105,164 @@ export function Settings() {
     }
   };
 
+  const handleExportPdf = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.text('StudyPlanner - Weekly Schedule', 14, 22);
+
+    let y = 35;
+    const days = Object.keys(data.schedule).sort();
+    const recentDays = days.slice(-7);
+
+    recentDays.forEach(date => {
+      if (y > 260) { doc.addPage(); y = 20; }
+      doc.setFontSize(12);
+      doc.setTextColor(59, 130, 246);
+      doc.text(date, 14, y);
+      y += 7;
+
+      const daySchedule = data.schedule[date] || [];
+      daySchedule.forEach(item => {
+        if (y > 270) { doc.addPage(); y = 20; }
+        doc.setFontSize(9);
+        doc.setTextColor(100, 116, 139);
+        doc.text(item.time || '', 14, y);
+        doc.setTextColor(241, 245, 249);
+        doc.text(item.title || '', 40, y);
+        if (item.description) {
+          doc.setTextColor(148, 163, 184);
+          doc.text(item.description, 40, y + 5);
+        }
+        y += item.description ? 12 : 7;
+      });
+      y += 5;
+    });
+
+    doc.save(`studyplanner-schedule-${todayStr()}.pdf`);
+    showToast(t('exportPdf') + '!');
+  };
+
+  const handleExportIcs = () => {
+    let ics = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//StudyPlanner//EN\r\nCALSCALE:GREGORIAN\r\n';
+
+    const days = Object.keys(data.schedule).sort();
+    days.forEach(date => {
+      const daySchedule = data.schedule[date] || [];
+      daySchedule.forEach(item => {
+        if (item.type !== 'study' && item.type !== 'revision') return;
+        const [h, m] = (item.time || '07:00').split(':');
+        const start = date.replace(/-/g, '') + 'T' + h + m + '00';
+        const endH = String(parseInt(h) + 1).padStart(2, '0');
+        const end = date.replace(/-/g, '') + 'T' + endH + m + '00';
+
+        ics += 'BEGIN:VEVENT\r\n';
+        ics += `DTSTART:${start}\r\n`;
+        ics += `DTEND:${end}\r\n`;
+        ics += `SUMMARY:${item.title || 'Study Session'}\r\n`;
+        ics += `DESCRIPTION:${item.description || ''}\r\n`;
+        ics += 'END:VEVENT\r\n';
+      });
+    });
+
+    ics += 'END:VCALENDAR';
+
+    const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `studyplanner-${todayStr()}.ics`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast(t('exportIcs') + '!');
+  };
+
   return (
     <div className="container" ref={containerRef}>
-      <h1 style={{marginBottom:'1.5rem'}}>Settings</h1>
+      <h1 style={{marginBottom:'1.5rem'}}>{t('settings')}</h1>
 
       <div className="card">
-        <h2>Notifications</h2>
+        <h2>{t('theme')}</h2>
+        <div className="export-import" style={{marginTop:'0.5rem'}}>
+          <button
+            className={`btn btn-sm ${theme === 'dark' ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={() => { if (theme !== 'dark') toggleTheme(); }}
+          >
+            {t('darkMode')}
+          </button>
+          <button
+            className={`btn btn-sm ${theme === 'light' ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={() => { if (theme !== 'light') toggleTheme(); }}
+          >
+            {t('lightMode')}
+          </button>
+        </div>
+      </div>
+
+      <div className="card">
+        <h2>{t('language')}</h2>
+        <div className="export-import" style={{marginTop:'0.5rem'}}>
+          <button
+            className={`btn btn-sm ${lang === 'en' ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={() => setLanguage('en')}
+          >
+            {t('english')}
+          </button>
+          <button
+            className={`btn btn-sm ${lang === 'mr' ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={() => setLanguage('mr')}
+          >
+            {t('marathi')}
+          </button>
+        </div>
+      </div>
+
+      <div className="card">
+        <h2>{t('notifications')}</h2>
         <div className="form-group">
           <label>
             <input type="checkbox" checked={enableNotif} onChange={e => { setEnableNotif(e.target.checked); }} />
-            {' '}Enable Notifications
+            {' '}{t('enableNotifications')}
           </label>
         </div>
         {enableNotif && (
           <div className="form-group">
-            <label>Remind me before each session (minutes)</label>
+            <label>{t('reminderBefore')}</label>
             <input type="number" value={reminderBefore} onChange={e => setReminderBefore(e.target.value)} min="1" max="30" />
           </div>
         )}
         <div style={{display:'flex',gap:'0.5rem',flexWrap:'wrap'}}>
-          <button className="btn btn-primary btn-sm" onClick={requestNotificationPermission}>Enable Notifications</button>
-          <button className="btn btn-secondary btn-sm" onClick={saveNotifications}>Save Settings</button>
+          <button className="btn btn-primary btn-sm" onClick={requestNotificationPermission}>{t('enableNotifBtn')}</button>
+          <button className="btn btn-secondary btn-sm" onClick={saveNotifications}>{t('saveSettings')}</button>
         </div>
       </div>
 
       <div className="card">
-        <h2>StudyPlayer AI (Groq API)</h2>
+        <h2>{t('studyPlayerAI')}</h2>
         <p style={{color:'var(--text-secondary)',marginBottom:'1rem',fontSize:'0.85rem'}}>
-          Get a free API key from <a href="https://console.groq.com" target="_blank" rel="noopener noreferrer" style={{color:'var(--accent)'}}>console.groq.com</a>
+          {t('getApiKey')} <a href="https://console.groq.com" target="_blank" rel="noopener noreferrer" style={{color:'var(--accent)'}}>console.groq.com</a>
         </p>
         <div className="form-group">
-          <label>Groq API Key</label>
+          <label>{t('groqApiKey')}</label>
           <input type="text" value={groqKey} onChange={e => setGroqKey(e.target.value)} placeholder="gsk_..." />
         </div>
-        <button className="btn btn-primary btn-sm" onClick={saveApiKey}>Save API Key</button>
+        <button className="btn btn-primary btn-sm" onClick={saveApiKey}>{t('saveApiKey')}</button>
       </div>
 
       <div className="card">
-        <h2>Data Management</h2>
+        <h2>{t('calendarExport')}</h2>
         <div className="export-import">
-          <button className="btn btn-secondary btn-sm" onClick={handleExport}>Export Data</button>
-          <button className="btn btn-secondary btn-sm" onClick={() => document.getElementById('importFile').click()}>Import Data</button>
+          <button className="btn btn-secondary btn-sm" onClick={handleExportPdf}>{t('exportPdf')}</button>
+          <button className="btn btn-secondary btn-sm" onClick={handleExportIcs}>{t('exportIcs')}</button>
+        </div>
+      </div>
+
+      <div className="card">
+        <h2>{t('dataManagement')}</h2>
+        <div className="export-import">
+          <button className="btn btn-secondary btn-sm" onClick={handleExport}>{t('exportData')}</button>
+          <button className="btn btn-secondary btn-sm" onClick={() => document.getElementById('importFile').click()}>{t('importData')}</button>
           <input type="file" id="importFile" accept=".json" style={{display:'none'}} onChange={handleImport} />
-          <button className="btn btn-danger btn-sm" onClick={handleReset}>Reset All Data</button>
+          <button className="btn btn-danger btn-sm" onClick={handleReset}>{t('resetAllData')}</button>
         </div>
       </div>
     </div>

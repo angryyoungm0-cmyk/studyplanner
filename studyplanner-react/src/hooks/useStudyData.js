@@ -1,4 +1,5 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { loadData, saveData } from '../lib/db';
 
 const DB_KEY = 'studyPlanner';
 
@@ -10,6 +11,11 @@ export function getDefaultData() {
     schedule: {},
     completedTasks: {},
     notes: {},
+    streak: {
+      current: 0,
+      best: 0,
+      lastStudyDate: null
+    },
     settings: {
       studyStartTime: '07:00',
       studyEndTime: '22:00',
@@ -26,29 +32,47 @@ export function getDefaultData() {
   };
 }
 
-export function useStudyData() {
-  const [data, setData] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem(DB_KEY)) || getDefaultData();
-    } catch {
-      return getDefaultData();
-    }
-  });
+function loadSync() {
+  try {
+    return JSON.parse(localStorage.getItem(DB_KEY)) || getDefaultData();
+  } catch {
+    return getDefaultData();
+  }
+}
 
-  const saveData = useCallback((newData) => {
-    localStorage.setItem(DB_KEY, JSON.stringify(newData));
+export function useStudyData() {
+  const [data, setData] = useState(loadSync);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    loadData().then(idbData => {
+      if (idbData) {
+        setData(idbData);
+      }
+      setLoaded(true);
+    });
+  }, []);
+
+  const persist = useCallback((newData) => {
     setData(newData);
+    saveData(newData);
+    try {
+      localStorage.setItem(DB_KEY, JSON.stringify(newData));
+    } catch {}
   }, []);
 
   const updateData = useCallback((updater) => {
     setData(prev => {
       const newData = typeof updater === 'function' ? updater(prev) : updater;
-      localStorage.setItem(DB_KEY, JSON.stringify(newData));
+      saveData(newData);
+      try {
+        localStorage.setItem(DB_KEY, JSON.stringify(newData));
+      } catch {}
       return newData;
     });
   }, []);
 
-  return { data, setData: saveData, updateData };
+  return { data, setData: persist, updateData, loaded };
 }
 
 export function todayStr() {
@@ -110,4 +134,52 @@ export function isHoliday(dateStr, holidays) {
 export function getFirstExamDate(exams) {
   if (!exams || exams.length === 0) return null;
   return exams.reduce((min, e) => e.date < min ? e.date : min, exams[0].date);
+}
+
+export function calculateStreak(completedTasks) {
+  let current = 0;
+  let date = new Date();
+  let dateStr = toLocalDateStr(date);
+
+  while (completedTasks[dateStr] && Object.values(completedTasks[dateStr]).some(Boolean)) {
+    current++;
+    date.setDate(date.getDate() - 1);
+    dateStr = toLocalDateStr(date);
+  }
+
+  return current;
+}
+
+export function updateStreak(data) {
+  const today = todayStr();
+  const todayTasks = data.completedTasks[today] || {};
+  const hasStudyToday = Object.values(todayTasks).some(Boolean);
+
+  if (!hasStudyToday) {
+    return data.streak;
+  }
+
+  const lastDate = data.streak.lastStudyDate;
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = toLocalDateStr(yesterday);
+
+  if (lastDate === today) {
+    return data.streak;
+  }
+
+  if (lastDate === yesterdayStr) {
+    const newCurrent = data.streak.current + 1;
+    return {
+      current: newCurrent,
+      best: Math.max(newCurrent, data.streak.best),
+      lastStudyDate: today
+    };
+  }
+
+  return {
+    current: 1,
+    best: Math.max(1, data.streak.best),
+    lastStudyDate: today
+  };
 }

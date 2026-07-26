@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
+import { useI18n } from '../context/I18nContext';
 import { generateId } from '../hooks/useStudyData';
 import { getSubjectList } from '../data/syllabus';
 import { animate, stagger } from 'animejs';
@@ -7,6 +8,7 @@ import { animateModal } from '../hooks/useAnimations';
 
 export function Subjects() {
   const { data, updateData, showToast } = useApp();
+  const { t } = useI18n();
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState(null);
   const [name, setName] = useState('');
@@ -53,7 +55,7 @@ export function Subjects() {
     const sub = getSubjectList().find(s => s.id === subId);
     if (!sub) return;
     if (data.subjects.find(s => s.id === subId)) {
-      showToast('Subject already added!', 'error');
+      showToast(t('subjectsTitle') + ' already added!', 'error');
       return;
     }
     const chapters = sub.chapters.map(ch => ({ name: ch.name, done: false }));
@@ -80,13 +82,13 @@ export function Subjects() {
           return { ...s, name: name.trim(), color, chapters: newChapters };
         })
       }));
-      showToast('Subject updated!');
+      showToast(t('subjectsTitle') + ' updated!');
     } else {
       updateData(prev => ({
         ...prev,
         subjects: [...prev.subjects, { id: generateId(), name: name.trim(), color, chapters: chapterList }]
       }));
-      showToast('Subject added!');
+      showToast(t('subjectsTitle') + ' added!');
     }
     setShowModal(false);
   };
@@ -106,12 +108,12 @@ export function Subjects() {
         ease: 'inQuad',
         onComplete: () => {
           updateData(prev => ({ ...prev, subjects: prev.subjects.filter(s => s.id !== id) }));
-          showToast('Subject deleted');
+          showToast(t('subjectsTitle') + ' deleted');
         }
       });
     } else {
       updateData(prev => ({ ...prev, subjects: prev.subjects.filter(s => s.id !== id) }));
-      showToast('Subject deleted');
+      showToast(t('subjectsTitle') + ' deleted');
     }
   };
 
@@ -149,9 +151,9 @@ export function Subjects() {
   return (
     <div className="container" ref={containerRef}>
       <div className="page-header">
-        <h1>My Subjects</h1>
+        <h1>{t('subjectsTitle')}</h1>
         <div className="header-actions">
-          <button className="btn btn-primary" onClick={openAddModal}>+ Add Subject</button>
+          <button className="btn btn-primary" onClick={openAddModal}>+ {t('addSubject')}</button>
         </div>
       </div>
 
@@ -173,7 +175,7 @@ export function Subjects() {
       )}
 
       {data.subjects.length === 0 && (
-        <p className="empty-state">No subjects added yet. Use the quick-add above or click "+ Add Subject"!</p>
+        <p className="empty-state">No subjects added yet. Use the quick-add above or click "+ {t('addSubject')}"!</p>
       )}
 
       {data.subjects.map(subject => {
@@ -223,7 +225,7 @@ export function Subjects() {
         <div className="modal open" onClick={() => setShowModal(false)}>
           <div className="modal-content" ref={modalRef} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>{editId ? 'Edit Subject' : 'Add Subject'}</h2>
+              <h2>{editId ? 'Edit Subject' : t('addSubject')}</h2>
               <button className="modal-close" onClick={() => setShowModal(false)}>&times;</button>
             </div>
             <div className="form-group">

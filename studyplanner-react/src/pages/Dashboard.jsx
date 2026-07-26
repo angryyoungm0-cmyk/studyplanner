@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
+import { useI18n } from '../context/I18nContext';
 import { formatDate, todayStr, daysBetween, getFirstExamDate } from '../hooks/useStudyData';
 import { animate, stagger } from 'animejs';
 
@@ -36,11 +37,12 @@ function AnimatedStat({ value, label }) {
 
 export function Dashboard() {
   const { data } = useApp();
+  const { t } = useI18n();
   const containerRef = useRef(null);
   const hour = new Date().getHours();
-  let greeting = 'Good Morning';
-  if (hour >= 12 && hour < 17) greeting = 'Good Afternoon';
-  else if (hour >= 17) greeting = 'Good Evening';
+  let greeting = t('goodMorning');
+  if (hour >= 12 && hour < 17) greeting = t('goodAfternoon');
+  else if (hour >= 17) greeting = t('goodEvening');
 
   const firstExam = getFirstExamDate(data.exams);
   let daysLeft = '--';
@@ -67,6 +69,8 @@ export function Dashboard() {
 
   const progressPct = totalChapters > 0 ? Math.round((doneChapters / totalChapters) * 100) : 0;
   const progressDisplay = totalChapters > 0 ? progressPct + '%' : '0%';
+
+  const streak = data.streak || { current: 0, best: 0 };
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -100,16 +104,36 @@ export function Dashboard() {
       </div>
 
       <div className="stats-grid">
-        <AnimatedStat value={daysLeftNum} label="Days Left" />
-        <AnimatedStat value={doneChapters} label="Chapters Done" />
-        <AnimatedStat value={totalChapters} label="Total Chapters" />
-        <AnimatedStat value={progressDisplay} label="Progress" />
+        <AnimatedStat value={daysLeftNum} label={t('daysLeft')} />
+        <AnimatedStat value={doneChapters} label={t('chaptersDone')} />
+        <AnimatedStat value={totalChapters} label={t('totalChapters')} />
+        <AnimatedStat value={progressDisplay} label={t('progress')} />
+      </div>
+
+      <div className="card streak-card">
+        <div className="streak-header">
+          <span className="streak-icon">&#128293;</span>
+          <h2>{t('studyStreak')}</h2>
+        </div>
+        <div className="streak-stats">
+          <div className="streak-stat">
+            <span className="streak-stat-number">{streak.current}</span>
+            <span className="streak-stat-label">{t('currentStreak')}</span>
+          </div>
+          <div className="streak-stat">
+            <span className="streak-stat-number">{streak.best}</span>
+            <span className="streak-stat-label">{t('bestStreak')}</span>
+          </div>
+        </div>
+        <p className="streak-message">
+          {streak.current > 0 ? t('streakMessage') : t('streakBroken')}
+        </p>
       </div>
 
       <div className="card">
-        <h2>Today's Schedule</h2>
+        <h2>{t('todaySchedule')}</h2>
         {todaySchedule.length === 0 ? (
-          <p className="empty-state">No schedule generated yet. Add your subjects and exams first!</p>
+          <p className="empty-state">{t('noSchedule')}</p>
         ) : (
           todaySchedule.map((item, i) => {
             if (item.type === 'break' || item.type === 'rest') return null;
@@ -130,7 +154,7 @@ export function Dashboard() {
       </div>
 
       <div className="card">
-        <h2>Weekly Progress</h2>
+        <h2>{t('weeklyProgress')}</h2>
         <WeeklyProgress data={data} />
       </div>
     </div>

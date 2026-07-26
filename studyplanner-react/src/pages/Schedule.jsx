@@ -1,10 +1,12 @@
 import { useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
+import { useI18n } from '../context/I18nContext';
 import { formatDate, todayStr, parseDate, toLocalDateStr, isHoliday } from '../hooks/useStudyData';
 import { animate, stagger } from 'animejs';
 
 export function Schedule() {
   const { data, updateData, viewingDate, setViewingDate } = useApp();
+  const { t } = useI18n();
   const itemsRef = useRef(null);
 
   const daySchedule = data.schedule[viewingDate] || [];
@@ -57,7 +59,7 @@ export function Schedule() {
       </div>
 
       {daySchedule.length === 0 ? (
-        <p className="empty-state">No schedule for this day. Generate a schedule!</p>
+        <p className="empty-state">{t('noSchedule')}</p>
       ) : (
         <div ref={itemsRef}>
           {daySchedule.map((item, i) => {

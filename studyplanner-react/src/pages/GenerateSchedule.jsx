@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
+import { useI18n } from '../context/I18nContext';
 import { useScheduleGenerator } from '../hooks/useScheduleGenerator';
 import { formatDate } from '../hooks/useStudyData';
 import { animate, stagger } from 'animejs';
 
 export function GenerateSchedule() {
   const { data, updateData, showToast, navigateTo } = useApp();
+  const { t } = useI18n();
   const { generateSchedule } = useScheduleGenerator();
   const s = data.settings;
   const containerRef = useRef(null);
@@ -59,7 +61,7 @@ export function GenerateSchedule() {
         ? [...prev.holidays.filter(h => h !== 'weekends'), 'weekends']
         : prev.holidays.filter(h => h !== 'weekends')
     }));
-    showToast('Timing settings saved!');
+    showToast(t('saveSettings') + '!');
   };
 
   const addHoliday = () => {
@@ -78,7 +80,7 @@ export function GenerateSchedule() {
 
   return (
     <div className="container" ref={containerRef}>
-      <h1 style={{marginBottom:'1.5rem'}}>Generate Schedule</h1>
+      <h1 style={{marginBottom:'1.5rem'}}>{t('generateSchedule')}</h1>
 
       <div className="card">
         <h2>Timing Settings</h2>
@@ -121,7 +123,7 @@ export function GenerateSchedule() {
               {' '}Treat Sundays as holidays (full day study)
             </label>
           </div>
-          <button type="submit" className="btn btn-secondary">Save Timings</button>
+          <button type="submit" className="btn btn-secondary">{t('saveSettings')}</button>
         </form>
       </div>
 
@@ -149,7 +151,7 @@ export function GenerateSchedule() {
           This will create a study schedule from today until your first exam. Make sure you have added subjects and exams first.
         </p>
         <button className="btn btn-primary" onClick={() => { generateSchedule(); navigateTo('dashboard'); }}>
-          Generate Schedule
+          {t('generateSchedule')}
         </button>
       </div>
     </div>

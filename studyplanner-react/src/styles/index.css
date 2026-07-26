@@ -24,6 +24,25 @@
   --shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
+[data-theme="light"] {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-card: #ffffff;
+  --bg-hover: #f1f5f9;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-light: rgba(37, 99, 235, 0.15);
+  --success: #16a34a;
+  --warning: #d97706;
+  --danger: #dc2626;
+  --danger-hover: #b91c1c;
+  --border: #e2e8f0;
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
 body {
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   background: var(--bg-primary);
@@ -922,6 +941,53 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
+}
+
+/* Study Streak */
+.streak-card {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(245, 158, 11, 0.1));
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.streak-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.streak-icon {
+  font-size: 1.5rem;
+}
+
+.streak-stats {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.streak-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.streak-stat-number {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--warning);
+}
+
+.streak-stat-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.streak-message {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-align: center;
+  font-style: italic;
 }
 
 /* StudyPlayer Styles */

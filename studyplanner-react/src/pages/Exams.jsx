@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
+import { useI18n } from '../context/I18nContext';
 import { generateId, formatDate, todayStr, daysBetween } from '../hooks/useStudyData';
 import { animate, stagger } from 'animejs';
 import { animateModal } from '../hooks/useAnimations';
 
 export function Exams() {
   const { data, updateData, showToast } = useApp();
+  const { t } = useI18n();
   const [showModal, setShowModal] = useState(false);
   const [examName, setExamName] = useState('');
   const [subjectId, setSubjectId] = useState('');
@@ -51,7 +53,7 @@ export function Exams() {
     setSubjectId('');
     setExamDate('');
     setExamChapters('all');
-    showToast('Exam added!');
+    showToast(t('addExam') + '!');
   };
 
   const deleteExam = (id) => {
@@ -60,7 +62,7 @@ export function Exams() {
       ...prev,
       exams: prev.exams.filter(e => e.id !== id)
     }));
-    showToast('Exam deleted');
+    showToast(t('exams') + ' deleted');
   };
 
   const sorted = [...data.exams].sort((a, b) => a.date.localeCompare(b.date));
@@ -68,16 +70,16 @@ export function Exams() {
   return (
     <div className="container" ref={containerRef}>
       <div className="page-header">
-        <h1>Exams</h1>
+        <h1>{t('exams')}</h1>
         <button className="btn btn-primary" onClick={() => {
           if (data.subjects.length === 0) { showToast('Add subjects first!', 'error'); return; }
           setExamName(''); setSubjectId(data.subjects[0]?.id || ''); setExamDate(''); setExamChapters('all');
           setShowModal(true);
-        }}>+ Add Exam</button>
+        }}>+ {t('addExam')}</button>
       </div>
 
       {sorted.length === 0 ? (
-        <p className="empty-state">No exams added yet. Click "+ Add Exam" to add your board exam dates!</p>
+        <p className="empty-state">No exams added yet. Click "+ {t('addExam')}" to add your board exam dates!</p>
       ) : (
         sorted.map(exam => {
           const days = daysBetween(todayStr(), exam.date);
@@ -103,7 +105,7 @@ export function Exams() {
         <div className="modal open" onClick={() => setShowModal(false)}>
           <div className="modal-content" ref={modalRef} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Add Exam</h2>
+              <h2>{t('addExam')}</h2>
               <button className="modal-close" onClick={() => setShowModal(false)}>&times;</button>
             </div>
             <div className="form-group">
@@ -128,7 +130,7 @@ export function Exams() {
             </div>
             <div className="form-actions">
               <button className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
-              <button className="btn btn-primary" onClick={addExam}>Add Exam</button>
+              <button className="btn btn-primary" onClick={addExam}>{t('addExam')}</button>
             </div>
           </div>
         </div>
