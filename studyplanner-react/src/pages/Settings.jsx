@@ -1,10 +1,11 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
 import { useI18n } from '../context/I18nContext';
 import { todayStr } from '../hooks/useStudyData';
 import { animate, stagger } from 'animejs';
 import jsPDF from 'jspdf';
+import { isConfigured as isSupabaseConfigured, syncToCloud, syncFromCloud } from '../lib/supabase';
 
 export function Settings() {
   const { data, updateData, showToast, resetAllData, navigateTo } = useApp();
@@ -16,6 +17,12 @@ export function Settings() {
   const [enableNotif, setEnableNotif] = useState(s.enableNotifications);
   const [reminderBefore, setReminderBefore] = useState(s.reminderBefore);
   const [groqKey, setGroqKey] = useState(s.groqApiKey || '');
+  const [syncing, setSyncing] = useState(false);
+  const [userId, setUserId] = useState(() => {
+    try {
+      return localStorage.getItem('studyplanner-userid') || '';
+    } catch { return ''; }
+  });
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -104,6 +111,47 @@ export function Settings() {
       }
     }
   };
+
+  const handleCloudSync = useCallback(async () => {
+    if (!userId.trim()) {
+      showToast('Enter a user ID first', 'error');
+      return;
+    }
+    setSyncing(true);
+    try {
+      localStorage.setItem('studyplanner-userid', userId.trim());
+      const success = await syncToCloud(userId.trim(), data);
+      if (success) {
+        showToast('Data synced to cloud!');
+      } else {
+        showToast('Cloud sync failed - check Supabase config', 'error');
+      }
+    } catch {
+      showToast('Cloud sync error', 'error');
+    }
+    setSyncing(false);
+  }, [userId, data, showToast]);
+
+  const handleCloudRestore = useCallback(async () => {
+    if (!userId.trim()) {
+      showToast('Enter a user ID first', 'error');
+      return;
+    }
+    setSyncing(true);
+    try {
+      localStorage.setItem('studyplanner-userid', userId.trim());
+      const cloudData = await syncFromCloud(userId.trim());
+      if (cloudData) {
+        updateData(cloudData);
+        showToast('Data restored from cloud!');
+      } else {
+        showToast('No cloud data found', 'error');
+      }
+    } catch {
+      showToast('Cloud restore error', 'error');
+    }
+    setSyncing(false);
+  }, [userId, updateData, showToast]);
 
   const handleExportPdf = () => {
     const doc = new jsPDF();
@@ -233,6 +281,32 @@ export function Settings() {
         <div style={{display:'flex',gap:'0.5rem',flexWrap:'wrap'}}>
           <button className="btn btn-primary btn-sm" onClick={requestNotificationPermission}>{t('enableNotifBtn')}</button>
           <button className="btn btn-secondary btn-sm" onClick={saveNotifications}>{t('saveSettings')}</button>
+        </div>
+      </div>
+
+      <div className="card">
+        <h2>Cloud Sync {isSupabaseConfigured ? '' : '(Configure Supabase)'}</h2>
+        <p style={{color:'var(--text-secondary)',marginBottom:'1rem',fontSize:'0.85rem'}}>
+          {isSupabaseConfigured
+            ? 'Sync your data across devices using Supabase.'
+            : 'Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env to enable.'}
+        </p>
+        <div className="form-group">
+          <label>User ID (your unique identifier)</label>
+          <input
+            type="text"
+            value={userId}
+            onChange={e => setUserId(e.target.value)}
+            placeholder="e.g. your-name or email"
+          />
+        </div>
+        <div style={{display:'flex',gap:'0.5rem',flexWrap:'wrap'}}>
+          <button className="btn btn-primary btn-sm" onClick={handleCloudSync} disabled={syncing || !isSupabaseConfigured}>
+            {syncing ? 'Syncing...' : 'Sync to Cloud'}
+          </button>
+          <button className="btn btn-secondary btn-sm" onClick={handleCloudRestore} disabled={syncing || !isSupabaseConfigured}>
+            {syncing ? 'Restoring...' : 'Restore from Cloud'}
+          </button>
         </div>
       </div>
 

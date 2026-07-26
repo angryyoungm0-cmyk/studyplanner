@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useApp } from '../context/AppContext';
 import { todayStr } from '../hooks/useStudyData';
+import { subscribeToPush, scheduleLocalNotification } from '../lib/notifications';
 
 export function useNotifications() {
   const { data, showToast } = useApp();
@@ -11,11 +12,6 @@ export function useNotifications() {
     timersRef.current = [];
 
     if (!data.settings.enableNotifications) return;
-
-    if ('Notification' in window && Notification.permission === 'default' && !window.hasAskedNotificationPermission) {
-      window.hasAskedNotificationPermission = true;
-      Notification.requestPermission();
-    }
 
     const todaySchedule = data.schedule[todayStr()];
     if (!todaySchedule) return;
@@ -34,12 +30,11 @@ export function useNotifications() {
 
       if (delay > 0 && delay < 24 * 60 * 60 * 1000) {
         const timer = setTimeout(() => {
-          if ('Notification' in window && Notification.permission === 'granted') {
-            new Notification('StudyPlanner Reminder', {
-              body: `Time to study: ${item.title}\n${item.description}`,
-              icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="80" font-size="80">📚</text></svg>'
-            });
-          }
+          scheduleLocalNotification(
+            'StudyPlanner Reminder',
+            `Time to study: ${item.title}${item.description ? '\n' + item.description : ''}`,
+            0
+          );
         }, delay);
         timersRef.current.push(timer);
       }
@@ -55,5 +50,15 @@ export function useNotifications() {
     };
   }, [setupNotifications]);
 
-  return { setupNotifications };
+  const enablePush = useCallback(async () => {
+    const sub = await subscribeToPush();
+    if (sub) {
+      showToast('Push notifications enabled!');
+    } else {
+      showToast('Push notifications not available', 'error');
+    }
+    return sub;
+  }, [showToast]);
+
+  return { setupNotifications, enablePush };
 }

@@ -53,6 +53,11 @@ const translations = {
     day: 'day',
     streakMessage: 'Keep it going!',
     streakBroken: 'Start a new streak today!',
+    cloudSync: 'Cloud Sync',
+    syncToCloud: 'Sync to Cloud',
+    restoreFromCloud: 'Restore from Cloud',
+    pushNotifications: 'Push Notifications',
+    enablePush: 'Enable Push',
   },
   mr: {
     dashboard: 'डॅशबोर्ड',
@@ -106,6 +111,11 @@ const translations = {
     day: 'दिवस',
     streakMessage: 'सुरू ठेवा!',
     streakBroken: 'आज नवीन स्ट्रीक सुरू करा!',
+    cloudSync: 'क्लाउड सिंक',
+    syncToCloud: 'क्लाउडवर सिंक करा',
+    restoreFromCloud: 'क्लाउडवरून पुनर्संचयित करा',
+    pushNotifications: 'पुश सूचना',
+    enablePush: 'पुश सक्षम करा',
   }
 };
 
