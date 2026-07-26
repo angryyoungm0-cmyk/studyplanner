@@ -1,7 +1,7 @@
 import { useRef, useEffect } from 'react';
 import { useApp } from './context/AppContext';
 import { useNotifications } from './hooks/useNotifications';
-import { animatePageIn, animateToast } from './hooks/useAnimations';
+import { animateToast } from './hooks/useAnimations';
 import { Navbar } from './components/Navbar';
 import { BottomNav } from './components/BottomNav';
 import { Dashboard } from './pages/Dashboard';
@@ -14,18 +14,9 @@ import { Settings } from './pages/Settings';
 
 function AppContent() {
   const { currentPage, toast } = useApp();
-  const pageRef = useRef(null);
   const toastRef = useRef(null);
-  const prevPage = useRef(currentPage);
 
   useNotifications();
-
-  useEffect(() => {
-    if (currentPage !== prevPage.current) {
-      animatePageIn(pageRef.current);
-      prevPage.current = currentPage;
-    }
-  }, [currentPage]);
 
   useEffect(() => {
     if (toast.visible) animateToast(toastRef.current);
@@ -47,7 +38,7 @@ function AppContent() {
   return (
     <div className="app">
       <Navbar />
-      <main style={{flex:1}} ref={pageRef} key={currentPage}>
+      <main style={{flex:1}}>
         {renderPage()}
       </main>
       <BottomNav />
