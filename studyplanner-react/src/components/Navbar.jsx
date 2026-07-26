@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useApp } from '../context/AppContext';
+import logo from '../assets/logo.png';
 
 const navItems = [
   { id: 'dashboard', label: 'Dashboard' },
@@ -17,7 +18,10 @@ export function Navbar() {
 
   return (
     <nav className="navbar">
-      <div className="nav-brand">StudyPlanner</div>
+      <div className="nav-brand">
+        <img src={logo} alt="StudyPlanner" className="nav-logo" />
+        <span>StudyPlanner</span>
+      </div>
       <div className="nav-links">
         {navItems.map(item => (
           <button
