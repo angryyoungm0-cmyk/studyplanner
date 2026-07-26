@@ -1,8 +1,42 @@
+import { useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { formatDate, todayStr, daysBetween, getFirstExamDate } from '../hooks/useStudyData';
+import { animate, stagger } from 'animejs';
+
+function AnimatedStat({ value, label }) {
+  const numRef = useRef(null);
+  const prevVal = useRef(0);
+
+  useEffect(() => {
+    if (!numRef.current) return;
+    const target = typeof value === 'string' ? parseInt(value) || 0 : value;
+    const obj = { val: prevVal.current };
+    animate(obj, {
+      val: target,
+      duration: 1200,
+      ease: 'outExpo',
+      onUpdate: () => {
+        if (numRef.current) {
+          numRef.current.textContent = typeof value === 'string' && value.includes('%')
+            ? Math.round(obj.val) + '%'
+            : Math.round(obj.val);
+        }
+      }
+    });
+    prevVal.current = target;
+  }, [value]);
+
+  return (
+    <div className="stat-card">
+      <div className="stat-number" ref={numRef}>0</div>
+      <div className="stat-label">{label}</div>
+    </div>
+  );
+}
 
 export function Dashboard() {
   const { data } = useApp();
+  const containerRef = useRef(null);
   const hour = new Date().getHours();
   let greeting = 'Good Morning';
   if (hour >= 12 && hour < 17) greeting = 'Good Afternoon';
@@ -31,30 +65,45 @@ export function Dashboard() {
   const todaySchedule = data.schedule[todayStr()] || [];
   const completed = data.completedTasks[todayStr()] || {};
 
+  const progressPct = totalChapters > 0 ? Math.round((doneChapters / totalChapters) * 100) : 0;
+  const progressDisplay = totalChapters > 0 ? progressPct + '%' : '0%';
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const items = containerRef.current.querySelectorAll('.card, .welcome-banner, .stats-grid');
+    animate(items, {
+      opacity: [0, 1],
+      translateY: [25, 0],
+      duration: 400,
+      delay: stagger(80),
+      ease: 'outQuad'
+    });
+    const scheduleItems = containerRef.current.querySelectorAll('.schedule-item');
+    if (scheduleItems.length) {
+      animate(scheduleItems, {
+        opacity: [0, 1],
+        translateX: [-30, 0],
+        duration: 350,
+        delay: stagger(50, { start: 400 }),
+        ease: 'outQuad'
+      });
+    }
+  }, []);
+
+  const daysLeftNum = typeof daysLeft === 'number' ? daysLeft : 0;
+
   return (
-    <div className="container">
+    <div className="container" ref={containerRef}>
       <div className="welcome-banner">
         <h1>{greeting}!</h1>
         <p>{daysText}</p>
       </div>
 
       <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-number">{daysLeft}</div>
-          <div className="stat-label">Days Left</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-number">{doneChapters}</div>
-          <div className="stat-label">Chapters Done</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-number">{totalChapters}</div>
-          <div className="stat-label">Total Chapters</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-number">{totalChapters > 0 ? Math.round((doneChapters / totalChapters) * 100) + '%' : '0%'}</div>
-          <div className="stat-label">Progress</div>
-        </div>
+        <AnimatedStat value={daysLeftNum} label="Days Left" />
+        <AnimatedStat value={doneChapters} label="Chapters Done" />
+        <AnimatedStat value={totalChapters} label="Total Chapters" />
+        <AnimatedStat value={progressDisplay} label="Progress" />
       </div>
 
       <div className="card">
@@ -89,6 +138,7 @@ export function Dashboard() {
 }
 
 function WeeklyProgress({ data }) {
+  const barsRef = useRef(null);
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const now = new Date();
   const startOfWeek = new Date(now);
@@ -109,14 +159,38 @@ function WeeklyProgress({ data }) {
     weekData.push({ day: days[i], total, done, isToday: ds === todayStr() });
   }
 
+  useEffect(() => {
+    if (!barsRef.current) return;
+    const fills = barsRef.current.querySelectorAll('.bar-fill');
+    animate(fills, {
+      height: ['0%', (el) => el.dataset.height || '3%'],
+      duration: 800,
+      delay: stagger(100),
+      ease: 'outElastic(1, 0.6)'
+    });
+    const labels = barsRef.current.querySelectorAll('.bar-day');
+    animate(labels, {
+      opacity: [0, 1],
+      translateY: [15, 0],
+      duration: 400,
+      delay: stagger(80),
+      ease: 'outQuad'
+    });
+  }, []);
+
   return (
-    <div className="weekly-bar">
+    <div className="weekly-bar" ref={barsRef}>
       {weekData.map(w => {
         const heightPct = w.total > 0 ? (w.done / maxTasks) * 100 : 0;
+        const finalH = Math.max(heightPct, 3);
         return (
           <div key={w.day} className="bar-day">
             <div className="bar-value">{w.done}/{w.total}</div>
-            <div className={`bar-fill ${w.isToday ? 'today' : ''}`} style={{ height: `${Math.max(heightPct, 3)}%` }} />
+            <div
+              className={`bar-fill ${w.isToday ? 'today' : ''}`}
+              style={{ height: '3%' }}
+              data-height={`${finalH}%`}
+            />
             <div className="bar-label">{w.day}</div>
           </div>
         );

@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { SYLLABUS } from '../data/syllabus';
+import { animate, stagger } from 'animejs';
+import { animateHero, animateChatMessage } from '../hooks/useAnimations';
 
 const SUGGESTIONS = [
   'Explain the main concept',
@@ -8,6 +10,28 @@ const SUGGESTIONS = [
   'Summarize this chapter',
   'What are the important formulas?'
 ];
+
+function AnimatedGrid({ children, className, style }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    if (!ref.current) return;
+    const cards = ref.current.querySelectorAll('.sp-card');
+    animate(cards, {
+      opacity: [0, 1],
+      scale: [0.7, 1],
+      translateY: [20, 0],
+      duration: 400,
+      delay: stagger(50),
+      ease: 'outBack(1.4)'
+    });
+  }, []);
+
+  return (
+    <div ref={ref} className={className} style={style}>
+      {children}
+    </div>
+  );
+}
 
 export function StudyPlayer() {
   const { data } = useApp();
@@ -19,10 +43,21 @@ export function StudyPlayer() {
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
   const chatHistoryRef = useRef([]);
+  const heroRef = useRef(null);
+  const chatRef = useRef(null);
+  const lastMsgRef = useRef(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, loading]);
+
+  useEffect(() => {
+    if (heroRef.current) animateHero(heroRef.current);
+  }, [view]);
+
+  useEffect(() => {
+    if (lastMsgRef.current) animateChatMessage(lastMsgRef.current);
+  }, [messages.length]);
 
   const apiKey = (data.settings.groqApiKey || '').trim();
 
@@ -126,7 +161,7 @@ Rules:
   if (!apiKey) {
     return (
       <div className="container">
-        <div className="sp-hero">
+        <div className="sp-hero" ref={heroRef}>
           <div className="sp-hero-icon">SP</div>
           <h1>StudyPlayer AI</h1>
           <p>Your personal AI study tutor for Maharashtra Board Class 10</p>
@@ -147,7 +182,7 @@ Rules:
 
   return (
     <div className="container" style={{display:'flex',flexDirection:'column',maxWidth:'700px'}}>
-      <div className="sp-hero">
+      <div className="sp-hero" ref={heroRef}>
         <div className="sp-hero-icon">SP</div>
         <h1>StudyPlayer AI</h1>
         <p>Your personal AI study tutor for Maharashtra Board Class 10</p>
@@ -158,14 +193,14 @@ Rules:
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem'}}>
             <h2 style={{fontSize:'1.1rem'}}>Choose a Subject</h2>
           </div>
-          <div className="sp-grid">
+          <AnimatedGrid className="sp-grid">
             {Object.entries(SYLLABUS).map(([key, sub]) => (
               <div key={key} className="sp-card" onClick={() => selectSubject(key)}>
                 <div className="sp-card-icon">{sub.icon}</div>
                 <div className="sp-card-name">{sub.name}</div>
               </div>
             ))}
-          </div>
+          </AnimatedGrid>
         </>
       )}
 
@@ -185,13 +220,13 @@ Rules:
               </div>
             </div>
           </div>
-          <div className="sp-grid" style={{marginTop:'1rem'}}>
+          <AnimatedGrid className="sp-grid" style={{marginTop:'1rem'}}>
             {SYLLABUS[selectedSubject].chapters.map(ch => (
               <div key={ch.id} className="sp-card" onClick={() => selectChapter(ch.id)}>
                 <div className="sp-card-name">{ch.name}</div>
               </div>
             ))}
-          </div>
+          </AnimatedGrid>
         </>
       )}
 
@@ -206,7 +241,7 @@ Rules:
             <div className="sp-chat-header-info">
               <div className="sp-chat-header-avatar">SP</div>
               <div>
-                <div style={{fontWeight:600,fontSize:'0.95rem'}} id="spChatTitle">
+                <div style={{fontWeight:600,fontSize:'0.95rem'}}>
                   {SYLLABUS[selectedSubject].chapters.find(c => c.id === selectedChapter)?.name}
                 </div>
                 <div style={{fontSize:'0.8rem',color:'var(--text-secondary)'}}>
@@ -221,7 +256,7 @@ Rules:
             </button>
           </div>
 
-          <div className="sp-chat-messages">
+          <div className="sp-chat-messages" ref={chatRef}>
             {messages.length === 0 && (
               <div className="sp-welcome-msg">
                 <div className="sp-welcome-avatar">SP</div>
@@ -242,7 +277,11 @@ Rules:
             )}
 
             {messages.map((msg, i) => (
-              <div key={i} className={`sp-msg ${msg.role === 'user' ? 'sp-msg-user' : 'sp-msg-ai'}`}>
+              <div
+                key={i}
+                className={`sp-msg ${msg.role === 'user' ? 'sp-msg-user' : 'sp-msg-ai'}`}
+                ref={i === messages.length - 1 ? lastMsgRef : null}
+              >
                 <div className="sp-msg-avatar">{msg.role === 'user' ? 'You' : 'SP'}</div>
                 <div
                   className="sp-msg-bubble"
@@ -253,7 +292,7 @@ Rules:
             ))}
 
             {loading && (
-              <div className="sp-msg sp-msg-ai">
+              <div className="sp-msg sp-msg-ai" ref={lastMsgRef}>
                 <div className="sp-msg-avatar">SP</div>
                 <div className="sp-msg-bubble">
                   <div className="sp-typing"><span></span><span></span><span></span></div>

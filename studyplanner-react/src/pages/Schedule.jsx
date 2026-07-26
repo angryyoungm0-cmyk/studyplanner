@@ -1,13 +1,28 @@
+import { useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { formatDate, todayStr, parseDate, toLocalDateStr, isHoliday } from '../hooks/useStudyData';
+import { animate, stagger } from 'animejs';
 
 export function Schedule() {
   const { data, updateData, viewingDate, setViewingDate } = useApp();
+  const itemsRef = useRef(null);
 
   const daySchedule = data.schedule[viewingDate] || [];
   const completed = data.completedTasks[viewingDate] || {};
   const holiday = isHoliday(viewingDate, data.holidays);
   const holidayLabel = holiday ? ' [Holiday - Full Day Study]' : '';
+
+  useEffect(() => {
+    if (!itemsRef.current) return;
+    const items = itemsRef.current.querySelectorAll('.schedule-item');
+    animate(items, {
+      opacity: [0, 1],
+      translateX: [-30, 0],
+      duration: 300,
+      delay: stagger(40),
+      ease: 'outQuad'
+    });
+  }, [viewingDate]);
 
   const changeDay = (offset) => {
     const d = parseDate(viewingDate);
@@ -44,34 +59,36 @@ export function Schedule() {
       {daySchedule.length === 0 ? (
         <p className="empty-state">No schedule for this day. Generate a schedule!</p>
       ) : (
-        daySchedule.map((item, i) => {
-          const isDone = completed[i];
-          const typeClass = item.type === 'study' ? 'type-study' :
-            item.type === 'break' ? 'type-break' :
-            item.type === 'school' ? 'type-school' :
-            item.type === 'revision' ? 'type-revision' : 'type-rest';
-          return (
-            <div key={i} className="schedule-item" style={{opacity: isDone ? '0.5' : '1'}}>
-              <div className="schedule-time">{item.time}</div>
-              <div className="schedule-details">
-                <h3 style={{textDecoration: isDone ? 'line-through' : 'none', color: isDone ? 'var(--text-muted)' : ''}}>
-                  {item.title}
-                </h3>
-                <p>{item.description || ''}</p>
-                <span className={`schedule-type ${typeClass}`}>{item.type}</span>
+        <div ref={itemsRef}>
+          {daySchedule.map((item, i) => {
+            const isDone = completed[i];
+            const typeClass = item.type === 'study' ? 'type-study' :
+              item.type === 'break' ? 'type-break' :
+              item.type === 'school' ? 'type-school' :
+              item.type === 'revision' ? 'type-revision' : 'type-rest';
+            return (
+              <div key={`${viewingDate}-${i}`} className="schedule-item" style={{opacity: isDone ? '0.5' : '1'}}>
+                <div className="schedule-time">{item.time}</div>
+                <div className="schedule-details">
+                  <h3 style={{textDecoration: isDone ? 'line-through' : 'none', color: isDone ? 'var(--text-muted)' : ''}}>
+                    {item.title}
+                  </h3>
+                  <p>{item.description || ''}</p>
+                  <span className={`schedule-type ${typeClass}`}>{item.type}</span>
+                </div>
+                <div className="schedule-actions">
+                  <button
+                    className={`done-btn ${isDone ? 'completed' : ''}`}
+                    onClick={() => toggleTask(i)}
+                    title="Mark done"
+                  >
+                    {isDone ? '\u2713' : ''}
+                  </button>
+                </div>
               </div>
-              <div className="schedule-actions">
-                <button
-                  className={`done-btn ${isDone ? 'completed' : ''}`}
-                  onClick={() => toggleTask(i)}
-                  title="Mark done"
-                >
-                  {isDone ? '\u2713' : ''}
-                </button>
-              </div>
-            </div>
-          );
-        })
+            );
+          })}
+        </div>
       )}
 
       <div className="card" style={{marginTop:'1rem'}}>

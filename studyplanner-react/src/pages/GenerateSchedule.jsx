@@ -1,12 +1,14 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { useScheduleGenerator } from '../hooks/useScheduleGenerator';
 import { formatDate } from '../hooks/useStudyData';
+import { animate, stagger } from 'animejs';
 
 export function GenerateSchedule() {
   const { data, updateData, showToast, navigateTo } = useApp();
   const { generateSchedule } = useScheduleGenerator();
   const s = data.settings;
+  const containerRef = useRef(null);
 
   const [studyStart, setStudyStart] = useState(s.studyStartTime);
   const [studyEnd, setStudyEnd] = useState(s.studyEndTime);
@@ -18,6 +20,26 @@ export function GenerateSchedule() {
   const [hBreakDur, setHBreakDur] = useState(s.holidayBreakDuration || 15);
   const [weekendsHoliday, setWeekendsHoliday] = useState(data.holidays.includes('weekends'));
   const [holidayDate, setHolidayDate] = useState('');
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const cards = containerRef.current.querySelectorAll('.card');
+    animate(cards, {
+      opacity: [0, 1],
+      translateY: [20, 0],
+      duration: 350,
+      delay: stagger(80),
+      ease: 'outQuad'
+    });
+    const formGroups = containerRef.current.querySelectorAll('.form-group');
+    animate(formGroups, {
+      opacity: [0, 1],
+      translateX: [-15, 0],
+      duration: 300,
+      delay: stagger(30, { start: 200 }),
+      ease: 'outQuad'
+    });
+  }, []);
 
   const saveTimings = () => {
     updateData(prev => ({
@@ -55,7 +77,7 @@ export function GenerateSchedule() {
   const specificHolidays = data.holidays.filter(h => h !== 'weekends');
 
   return (
-    <div className="container">
+    <div className="container" ref={containerRef}>
       <h1 style={{marginBottom:'1.5rem'}}>Generate Schedule</h1>
 
       <div className="card">

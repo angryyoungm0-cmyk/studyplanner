@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { generateId, formatDate, todayStr, daysBetween } from '../hooks/useStudyData';
+import { animate, stagger } from 'animejs';
+import { animateModal } from '../hooks/useAnimations';
 
 export function Exams() {
   const { data, updateData, showToast } = useApp();
@@ -9,6 +11,25 @@ export function Exams() {
   const [subjectId, setSubjectId] = useState('');
   const [examDate, setExamDate] = useState('');
   const [examChapters, setExamChapters] = useState('all');
+  const containerRef = useRef(null);
+  const modalRef = useRef(null);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const cards = containerRef.current.querySelectorAll('.exam-card');
+    animate(cards, {
+      opacity: [0, 1],
+      translateX: [-20, 0],
+      scale: [0.97, 1],
+      duration: 300,
+      delay: stagger(50),
+      ease: 'outQuad'
+    });
+  }, [data.exams.length]);
+
+  useEffect(() => {
+    if (showModal && modalRef.current) animateModal(modalRef.current);
+  }, [showModal]);
 
   const addExam = () => {
     if (!examName.trim() || !subjectId || !examDate) {
@@ -45,7 +66,7 @@ export function Exams() {
   const sorted = [...data.exams].sort((a, b) => a.date.localeCompare(b.date));
 
   return (
-    <div className="container">
+    <div className="container" ref={containerRef}>
       <div className="page-header">
         <h1>Exams</h1>
         <button className="btn btn-primary" onClick={() => {
@@ -80,7 +101,7 @@ export function Exams() {
 
       {showModal && (
         <div className="modal open" onClick={() => setShowModal(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
+          <div className="modal-content" ref={modalRef} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Add Exam</h2>
               <button className="modal-close" onClick={() => setShowModal(false)}>&times;</button>

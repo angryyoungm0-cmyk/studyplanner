@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { generateId } from '../hooks/useStudyData';
 import { getSubjectList } from '../data/syllabus';
+import { animate, stagger } from 'animejs';
+import { animateModal } from '../hooks/useAnimations';
 
 export function Subjects() {
   const { data, updateData, showToast } = useApp();
@@ -11,6 +13,25 @@ export function Subjects() {
   const [color, setColor] = useState('#4CAF50');
   const [chapters, setChapters] = useState(['']);
   const [openSubject, setOpenSubject] = useState(null);
+  const containerRef = useRef(null);
+  const modalRef = useRef(null);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const cards = containerRef.current.querySelectorAll('.subject-card, .sp-card, .card');
+    animate(cards, {
+      opacity: [0, 1],
+      translateY: [25, 0],
+      scale: [0.96, 1],
+      duration: 350,
+      delay: stagger(50),
+      ease: 'outQuad'
+    });
+  }, [data.subjects.length === 0]);
+
+  useEffect(() => {
+    if (showModal && modalRef.current) animateModal(modalRef.current);
+  }, [showModal]);
 
   const openAddModal = () => {
     setEditId(null);
@@ -72,11 +93,26 @@ export function Subjects() {
 
   const deleteSubject = (id) => {
     if (!confirm('Delete this subject and all its chapters?')) return;
-    updateData(prev => ({
-      ...prev,
-      subjects: prev.subjects.filter(s => s.id !== id)
-    }));
-    showToast('Subject deleted');
+    const card = containerRef.current?.querySelector(`[data-subject-id="${id}"]`);
+    if (card) {
+      animate(card, {
+        opacity: [1, 0],
+        translateX: [-50, 0],
+        height: [card.offsetHeight, 0],
+        marginBottom: [10, 0],
+        paddingTop: [0, 0],
+        paddingBottom: [0, 0],
+        duration: 300,
+        ease: 'inQuad',
+        onComplete: () => {
+          updateData(prev => ({ ...prev, subjects: prev.subjects.filter(s => s.id !== id) }));
+          showToast('Subject deleted');
+        }
+      });
+    } else {
+      updateData(prev => ({ ...prev, subjects: prev.subjects.filter(s => s.id !== id) }));
+      showToast('Subject deleted');
+    }
   };
 
   const toggleChapter = (subjectId, chapterIndex) => {
@@ -111,7 +147,7 @@ export function Subjects() {
   };
 
   return (
-    <div className="container">
+    <div className="container" ref={containerRef}>
       <div className="page-header">
         <h1>My Subjects</h1>
         <div className="header-actions">
@@ -147,7 +183,7 @@ export function Subjects() {
         const isOpen = openSubject === subject.id;
 
         return (
-          <div key={subject.id} className="subject-card">
+          <div key={subject.id} className="subject-card" data-subject-id={subject.id}>
             <div className="subject-header" onClick={() => setOpenSubject(isOpen ? null : subject.id)}>
               <div className="subject-title">
                 <div className="subject-color" style={{background: subject.color}} />
@@ -185,7 +221,7 @@ export function Subjects() {
 
       {showModal && (
         <div className="modal open" onClick={() => setShowModal(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
+          <div className="modal-content" ref={modalRef} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{editId ? 'Edit Subject' : 'Add Subject'}</h2>
               <button className="modal-close" onClick={() => setShowModal(false)}>&times;</button>

@@ -1,14 +1,28 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { todayStr } from '../hooks/useStudyData';
+import { animate, stagger } from 'animejs';
 
 export function Settings() {
   const { data, updateData, showToast, resetAllData, navigateTo } = useApp();
   const s = data.settings;
+  const containerRef = useRef(null);
 
   const [enableNotif, setEnableNotif] = useState(s.enableNotifications);
   const [reminderBefore, setReminderBefore] = useState(s.reminderBefore);
   const [groqKey, setGroqKey] = useState(s.groqApiKey || '');
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const cards = containerRef.current.querySelectorAll('.card');
+    animate(cards, {
+      opacity: [0, 1],
+      translateY: [20, 0],
+      duration: 350,
+      delay: stagger(80),
+      ease: 'outQuad'
+    });
+  }, []);
 
   const saveNotifications = () => {
     updateData(prev => ({
@@ -87,7 +101,7 @@ export function Settings() {
   };
 
   return (
-    <div className="container">
+    <div className="container" ref={containerRef}>
       <h1 style={{marginBottom:'1.5rem'}}>Settings</h1>
 
       <div className="card">

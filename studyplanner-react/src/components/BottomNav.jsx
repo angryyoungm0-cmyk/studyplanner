@@ -1,4 +1,6 @@
+import { useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
+import { animate } from 'animejs';
 
 const navItems = [
   { id: 'dashboard', label: 'Home', icon: (
@@ -42,14 +44,41 @@ const navItems = [
 
 export function BottomNav() {
   const { currentPage, navigateTo } = useApp();
+  const indicatorRef = useRef(null);
+  const btnsRef = useRef(null);
+
+  useEffect(() => {
+    if (!btnsRef.current || !indicatorRef.current) return;
+    const activeBtn = btnsRef.current.querySelector('.bottom-nav-btn.active');
+    if (activeBtn) {
+      const rect = activeBtn.getBoundingClientRect();
+      const parentRect = btnsRef.current.getBoundingClientRect();
+      animate(indicatorRef.current, {
+        left: [indicatorRef.current.offsetLeft, rect.left - parentRect.left + rect.width / 2 - 14],
+        duration: 300,
+        ease: 'outQuad'
+      });
+    }
+  }, [currentPage]);
+
+  const handleClick = (id, e) => {
+    const btn = e.currentTarget;
+    animate(btn, {
+      scale: [1, 0.85, 1.05, 1],
+      duration: 300,
+      ease: 'outQuad'
+    });
+    navigateTo(id);
+  };
 
   return (
-    <nav className="bottom-nav" id="bottomNav">
+    <nav className="bottom-nav" id="bottomNav" ref={btnsRef}>
+      <div className="bottom-nav-indicator" ref={indicatorRef} />
       {navItems.map(item => (
         <button
           key={item.id}
           className={`bottom-nav-btn ${currentPage === item.id ? 'active' : ''}`}
-          onClick={() => navigateTo(item.id)}
+          onClick={(e) => handleClick(item.id, e)}
         >
           {item.icon}
           <span>{item.label}</span>
