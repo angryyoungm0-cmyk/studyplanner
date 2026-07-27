@@ -26,14 +26,18 @@ export function Settings() {
 
   useEffect(() => {
     if (!containerRef.current) return;
-    const cards = containerRef.current.querySelectorAll('.card');
-    animate(cards, {
-      opacity: [0, 1],
-      translateY: [20, 0],
-      duration: 350,
-      delay: stagger(80),
-      ease: 'outQuad'
-    });
+    try {
+      const cards = containerRef.current.querySelectorAll('.card');
+      if (cards.length) {
+        animate(cards, {
+          opacity: [0, 1],
+          translateY: [20, 0],
+          duration: 350,
+          delay: stagger(80),
+          ease: 'outQuad'
+        });
+      }
+    } catch {}
   }, []);
 
   const saveNotifications = () => {
@@ -225,7 +229,7 @@ export function Settings() {
   };
 
   return (
-    <div className="container" ref={containerRef}>
+    <div className="container" ref={containerRef} style={{opacity: 1}}>
       <h1 style={{marginBottom:'1.5rem'}}>{t('settings')}</h1>
 
       <div className="card">

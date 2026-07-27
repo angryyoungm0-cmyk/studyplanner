@@ -25,22 +25,22 @@ export function GenerateSchedule() {
 
   useEffect(() => {
     if (!containerRef.current) return;
-    const cards = containerRef.current.querySelectorAll('.card');
-    animate(cards, {
-      opacity: [0, 1],
-      translateY: [20, 0],
-      duration: 350,
-      delay: stagger(80),
-      ease: 'outQuad'
-    });
-    const formGroups = containerRef.current.querySelectorAll('.form-group');
-    animate(formGroups, {
-      opacity: [0, 1],
-      translateX: [-15, 0],
-      duration: 300,
-      delay: stagger(30, { start: 200 }),
-      ease: 'outQuad'
-    });
+    try {
+      const cards = containerRef.current.querySelectorAll('.card');
+      if (cards.length) {
+        animate(cards, {
+          opacity: [0, 1],
+          translateY: [20, 0],
+          duration: 350,
+          delay: stagger(80),
+          ease: 'outQuad'
+        });
+      }
+    } catch {
+      if (containerRef.current) {
+        containerRef.current.style.opacity = '1';
+      }
+    }
   }, []);
 
   const saveTimings = () => {
@@ -52,8 +52,8 @@ export function GenerateSchedule() {
         studyEndTime: studyEnd,
         schoolStart,
         schoolEnd,
-        sessionDuration: parseInt(sessionDur),
-        breakDuration: parseInt(breakDur),
+        sessionDuration: parseInt(sessionDur) || 45,
+        breakDuration: parseInt(breakDur) || 10,
         holidaySessionDuration: parseInt(hSessionDur) || 60,
         holidayBreakDuration: parseInt(hBreakDur) || 15
       },
@@ -79,7 +79,7 @@ export function GenerateSchedule() {
   const specificHolidays = data.holidays.filter(h => h !== 'weekends');
 
   return (
-    <div className="container" ref={containerRef}>
+    <div className="container" ref={containerRef} style={{opacity: 1}}>
       <h1 style={{marginBottom:'1.5rem'}}>{t('generateSchedule')}</h1>
 
       <div className="card">

@@ -16,14 +16,18 @@ export function Schedule() {
 
   useEffect(() => {
     if (!itemsRef.current) return;
-    const items = itemsRef.current.querySelectorAll('.schedule-item');
-    animate(items, {
-      opacity: [0, 1],
-      translateX: [-30, 0],
-      duration: 300,
-      delay: stagger(40),
-      ease: 'outQuad'
-    });
+    try {
+      const items = itemsRef.current.querySelectorAll('.schedule-item');
+      if (items.length) {
+        animate(items, {
+          opacity: [0, 1],
+          translateX: [-30, 0],
+          duration: 300,
+          delay: stagger(40),
+          ease: 'outQuad'
+        });
+      }
+    } catch {}
   }, [viewingDate]);
 
   const changeDay = (offset) => {

@@ -20,15 +20,19 @@ export function Subjects() {
 
   useEffect(() => {
     if (!containerRef.current) return;
-    const cards = containerRef.current.querySelectorAll('.subject-card, .sp-card, .card');
-    animate(cards, {
-      opacity: [0, 1],
-      translateY: [25, 0],
-      scale: [0.96, 1],
-      duration: 350,
-      delay: stagger(50),
-      ease: 'outQuad'
-    });
+    try {
+      const cards = containerRef.current.querySelectorAll('.subject-card, .sp-card, .card');
+      if (cards.length) {
+        animate(cards, {
+          opacity: [0, 1],
+          translateY: [25, 0],
+          scale: [0.96, 1],
+          duration: 350,
+          delay: stagger(50),
+          ease: 'outQuad'
+        });
+      }
+    } catch {}
   }, [data.subjects.length === 0]);
 
   useEffect(() => {
@@ -149,7 +153,7 @@ export function Subjects() {
   };
 
   return (
-    <div className="container" ref={containerRef}>
+    <div className="container" ref={containerRef} style={{opacity: 1}}>
       <div className="page-header">
         <h1>{t('subjectsTitle')}</h1>
         <div className="header-actions">

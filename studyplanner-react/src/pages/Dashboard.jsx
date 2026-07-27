@@ -74,30 +74,34 @@ export function Dashboard() {
 
   useEffect(() => {
     if (!containerRef.current) return;
-    const items = containerRef.current.querySelectorAll('.card, .welcome-banner, .stats-grid');
-    animate(items, {
-      opacity: [0, 1],
-      translateY: [25, 0],
-      duration: 400,
-      delay: stagger(80),
-      ease: 'outQuad'
-    });
-    const scheduleItems = containerRef.current.querySelectorAll('.schedule-item');
-    if (scheduleItems.length) {
-      animate(scheduleItems, {
-        opacity: [0, 1],
-        translateX: [-30, 0],
-        duration: 350,
-        delay: stagger(50, { start: 400 }),
-        ease: 'outQuad'
-      });
-    }
+    try {
+      const items = containerRef.current.querySelectorAll('.card, .welcome-banner, .stats-grid');
+      if (items.length) {
+        animate(items, {
+          opacity: [0, 1],
+          translateY: [25, 0],
+          duration: 400,
+          delay: stagger(80),
+          ease: 'outQuad'
+        });
+      }
+      const scheduleItems = containerRef.current.querySelectorAll('.schedule-item');
+      if (scheduleItems.length) {
+        animate(scheduleItems, {
+          opacity: [0, 1],
+          translateX: [-30, 0],
+          duration: 350,
+          delay: stagger(50, { start: 400 }),
+          ease: 'outQuad'
+        });
+      }
+    } catch {}
   }, []);
 
   const daysLeftNum = typeof daysLeft === 'number' ? daysLeft : 0;
 
   return (
-    <div className="container" ref={containerRef}>
+    <div className="container" ref={containerRef} style={{opacity: 1}}>
       <div className="welcome-banner">
         <h1>{greeting}!</h1>
         <p>{daysText}</p>

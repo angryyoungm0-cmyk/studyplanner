@@ -18,15 +18,19 @@ export function Exams() {
 
   useEffect(() => {
     if (!containerRef.current) return;
-    const cards = containerRef.current.querySelectorAll('.exam-card');
-    animate(cards, {
-      opacity: [0, 1],
-      translateX: [-20, 0],
-      scale: [0.97, 1],
-      duration: 300,
-      delay: stagger(50),
-      ease: 'outQuad'
-    });
+    try {
+      const cards = containerRef.current.querySelectorAll('.exam-card');
+      if (cards.length) {
+        animate(cards, {
+          opacity: [0, 1],
+          translateX: [-20, 0],
+          scale: [0.97, 1],
+          duration: 300,
+          delay: stagger(50),
+          ease: 'outQuad'
+        });
+      }
+    } catch {}
   }, [data.exams.length]);
 
   useEffect(() => {
@@ -68,7 +72,7 @@ export function Exams() {
   const sorted = [...data.exams].sort((a, b) => a.date.localeCompare(b.date));
 
   return (
-    <div className="container" ref={containerRef}>
+    <div className="container" ref={containerRef} style={{opacity: 1}}>
       <div className="page-header">
         <h1>{t('exams')}</h1>
         <button className="btn btn-primary" onClick={() => {

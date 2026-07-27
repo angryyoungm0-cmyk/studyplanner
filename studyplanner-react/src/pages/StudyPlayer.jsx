@@ -15,15 +15,19 @@ function AnimatedGrid({ children, className, style }) {
   const ref = useRef(null);
   useEffect(() => {
     if (!ref.current) return;
-    const cards = ref.current.querySelectorAll('.sp-card');
-    animate(cards, {
-      opacity: [0, 1],
-      scale: [0.7, 1],
-      translateY: [20, 0],
-      duration: 400,
-      delay: stagger(50),
-      ease: 'outBack(1.4)'
-    });
+    try {
+      const cards = ref.current.querySelectorAll('.sp-card');
+      if (cards.length) {
+        animate(cards, {
+          opacity: [0, 1],
+          scale: [0.7, 1],
+          translateY: [20, 0],
+          duration: 400,
+          delay: stagger(50),
+          ease: 'outBack(1.4)'
+        });
+      }
+    } catch {}
   }, []);
 
   return (
