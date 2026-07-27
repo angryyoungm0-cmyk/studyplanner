@@ -1,111 +1,108 @@
-import { useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
-import { formatDate, todayStr, parseDate, toLocalDateStr, isHoliday } from '../hooks/useStudyData';
-import { animate, stagger } from 'animejs';
+import { todayStr, formatDate } from '../hooks/useStudyData';
+import { animatePageIn } from '../hooks/useAnimations';
 
 export function Schedule() {
-  const { data, updateData, viewingDate, setViewingDate } = useApp();
+  const { data, updateData, showToast } = useApp();
   const { t } = useI18n();
-  const itemsRef = useRef(null);
-
-  const daySchedule = data.schedule[viewingDate] || [];
-  const completed = data.completedTasks[viewingDate] || {};
-  const holiday = isHoliday(viewingDate, data.holidays);
-  const holidayLabel = holiday ? ' [Holiday - Full Day Study]' : '';
+  const containerRef = useRef(null);
+  const [selectedDate, setSelectedDate] = useState(todayStr());
 
   useEffect(() => {
-    if (!itemsRef.current) return;
-    try {
-      const items = itemsRef.current.querySelectorAll('.schedule-item');
-      if (items.length) {
-        animate(items, {
-          opacity: [0, 1],
-          translateX: [-30, 0],
-          duration: 300,
-          delay: stagger(40),
-          ease: 'outQuad'
-        });
-      }
-    } catch {}
-  }, [viewingDate]);
+    animatePageIn(containerRef.current);
+  }, []);
 
-  const changeDay = (offset) => {
-    const d = parseDate(viewingDate);
-    d.setDate(d.getDate() + offset);
-    setViewingDate(toLocalDateStr(d));
-  };
+  const schedule = data.schedule[selectedDate] || [];
+  const completed = data.completedTasks[selectedDate] || {};
+  const totalStudy = schedule.filter(s => s.type === 'study' || s.type === 'revision').length;
+  const completedCount = Object.values(completed).filter(Boolean).length;
 
   const toggleTask = (index) => {
     updateData(prev => {
-      const ct = { ...prev.completedTasks };
-      if (!ct[viewingDate]) ct[viewingDate] = {};
-      ct[viewingDate] = { ...ct[viewingDate], [index]: !ct[viewingDate][index] };
-      return { ...prev, completedTasks: ct };
+      const completedTasks = { ...prev.completedTasks };
+      const dayTasks = { ...completedTasks[selectedDate] };
+      dayTasks[index] = !dayTasks[index];
+      completedTasks[selectedDate] = dayTasks;
+      return { ...prev, completedTasks };
     });
   };
 
-  const saveNotes = (notes) => {
-    updateData(prev => ({
-      ...prev,
-      notes: { ...prev.notes, [viewingDate]: notes }
-    }));
+  const clearSchedule = () => {
+    if (!confirm('Clear schedule for this day?')) return;
+    updateData(prev => {
+      const schedule = { ...prev.schedule };
+      delete schedule[selectedDate];
+      const completedTasks = { ...prev.completedTasks };
+      delete completedTasks[selectedDate];
+      return { ...prev, schedule, completedTasks };
+    });
+    showToast('Schedule cleared');
+  };
+
+  const isToday = selectedDate === todayStr();
+
+  const changeDate = (days) => {
+    const d = new Date(selectedDate);
+    d.setDate(d.getDate() + days);
+    setSelectedDate(d.toISOString().split('T')[0]);
   };
 
   return (
-    <div className="container">
-      <div className="page-header">
-        <div className="header-actions">
-          <button className="btn btn-secondary btn-sm" onClick={() => changeDay(-1)}>&larr;</button>
-          <h1 id="currentDateDisplay">{formatDate(viewingDate)}{holidayLabel && <span dangerouslySetInnerHTML={{__html: holidayLabel}} />}</h1>
-          <button className="btn btn-secondary btn-sm" onClick={() => changeDay(1)}>&rarr;</button>
+    <div className="container" ref={containerRef}>
+      <h1 style={{marginBottom:'1rem'}}>{t('scheduleTitle')}</h1>
+
+      <div className="card">
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'0.5rem',flexWrap:'wrap',gap:'0.5rem'}}>
+          <div style={{display:'flex',alignItems:'center',gap:'0.5rem'}}>
+            <button className="btn btn-sm btn-secondary" onClick={() => changeDate(-1)}>&lt;</button>
+            <strong>{formatDate(selectedDate)}</strong>
+            <button className="btn btn-sm btn-secondary" onClick={() => changeDate(1)}>&gt;</button>
+            {!isToday && (
+              <button className="btn btn-sm btn-primary" onClick={() => setSelectedDate(todayStr())}>{t('today')}</button>
+            )}
+          </div>
+          {schedule.length > 0 && (
+            <button className="btn btn-sm btn-danger" onClick={clearSchedule}>{t('clearSchedule')}</button>
+          )}
         </div>
+        {totalStudy > 0 && (
+          <p style={{color:'var(--text-secondary)',fontSize:'0.85rem'}}>
+            {t('completed')}: {completedCount}/{totalStudy} tasks
+          </p>
+        )}
       </div>
 
-      {daySchedule.length === 0 ? (
-        <p className="empty-state">{t('noSchedule')}</p>
-      ) : (
-        <div ref={itemsRef}>
-          {daySchedule.map((item, i) => {
-            const isDone = completed[i];
-            const typeClass = item.type === 'study' ? 'type-study' :
-              item.type === 'break' ? 'type-break' :
-              item.type === 'school' ? 'type-school' :
-              item.type === 'revision' ? 'type-revision' : 'type-rest';
-            return (
-              <div key={`${viewingDate}-${i}`} className="schedule-item" style={{opacity: isDone ? '0.5' : '1'}}>
-                <div className="schedule-time">{item.time}</div>
-                <div className="schedule-details">
-                  <h3 style={{textDecoration: isDone ? 'line-through' : 'none', color: isDone ? 'var(--text-muted)' : ''}}>
-                    {item.title}
-                  </h3>
-                  <p>{item.description || ''}</p>
-                  <span className={`schedule-type ${typeClass}`}>{item.type}</span>
-                </div>
-                <div className="schedule-actions">
-                  <button
-                    className={`done-btn ${isDone ? 'completed' : ''}`}
-                    onClick={() => toggleTask(i)}
-                    title="Mark done"
-                  >
-                    {isDone ? '\u2713' : ''}
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+      {schedule.length === 0 && (
+        <div className="card">
+          <p className="empty-state">{t('noSchedule')}</p>
         </div>
       )}
 
-      <div className="card" style={{marginTop:'1rem'}}>
-        <h2>Notes</h2>
-        <textarea
-          className="notes-area"
-          value={data.notes[viewingDate] || ''}
-          onChange={e => saveNotes(e.target.value)}
-          placeholder="Add notes for this day..."
-        />
-      </div>
+      {schedule.map((item, i) => {
+        const isBreak = item.type === 'break' || item.type === 'rest';
+        const isDone = completed[i];
+        return (
+          <div key={i} className={`schedule-item ${isBreak ? 'break' : ''}`} style={{ opacity: isDone ? '0.5' : '1' }}>
+            <div className="schedule-time">{item.time}</div>
+            <div className="schedule-details" style={{ flex: 1 }}>
+              <h3 style={{
+                textDecoration: isDone ? 'line-through' : 'none',
+                color: isDone ? 'var(--text-muted)' : ''
+              }}>
+                {item.title}
+              </h3>
+              <p>{item.description || ''}</p>
+            </div>
+            {!isBreak && (
+              <button className="btn btn-sm btn-secondary" onClick={() => toggleTask(i)}>
+                {isDone ? t('undo') : t('done')}
+              </button>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }

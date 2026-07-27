@@ -136,6 +136,29 @@ export function getFirstExamDate(exams) {
   return exams.reduce((min, e) => e.date < min ? e.date : min, exams[0].date);
 }
 
+export function exportData(data) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `studyplanner-backup-${todayStr()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+export function importData(file, callback) {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const imported = JSON.parse(e.target.result);
+      callback(imported);
+    } catch {
+      alert('Invalid backup file');
+    }
+  };
+  reader.readAsText(file);
+}
+
 export function calculateStreak(completedTasks) {
   let current = 0;
   let date = new Date();

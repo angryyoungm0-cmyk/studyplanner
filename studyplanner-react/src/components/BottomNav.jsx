@@ -1,7 +1,6 @@
 import { useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
-import { animate } from 'animejs';
 
 const navItemIcons = {
   dashboard: (
@@ -64,21 +63,15 @@ export function BottomNav() {
     if (activeBtn) {
       const rect = activeBtn.getBoundingClientRect();
       const parentRect = btnsRef.current.getBoundingClientRect();
-      animate(indicatorRef.current, {
-        left: [indicatorRef.current.offsetLeft, rect.left - parentRect.left + rect.width / 2 - 14],
-        duration: 300,
-        ease: 'outQuad'
-      });
+      indicatorRef.current.style.transition = 'left 0.3s cubic-bezier(0.4,0,0.2,1)';
+      indicatorRef.current.style.left = (rect.left - parentRect.left + rect.width / 2 - 14) + 'px';
     }
   }, [currentPage]);
 
   const handleClick = (id, e) => {
     const btn = e.currentTarget;
-    animate(btn, {
-      scale: [1, 0.85, 1.05, 1],
-      duration: 300,
-      ease: 'outQuad'
-    });
+    btn.style.transform = 'scale(0.85)';
+    setTimeout(() => { btn.style.transform = 'scale(1)'; }, 150);
     navigateTo(id);
   };
 

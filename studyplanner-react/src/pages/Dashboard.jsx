@@ -2,29 +2,31 @@ import { useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
 import { formatDate, todayStr, daysBetween, getFirstExamDate } from '../hooks/useStudyData';
-import { animate, stagger } from 'animejs';
+import { animatePageIn } from '../hooks/useAnimations';
 
 function AnimatedStat({ value, label }) {
   const numRef = useRef(null);
-  const prevVal = useRef(0);
 
   useEffect(() => {
     if (!numRef.current) return;
     const target = typeof value === 'string' ? parseInt(value) || 0 : value;
-    const obj = { val: prevVal.current };
-    animate(obj, {
-      val: target,
-      duration: 1200,
-      ease: 'outExpo',
-      onUpdate: () => {
-        if (numRef.current) {
-          numRef.current.textContent = typeof value === 'string' && value.includes('%')
-            ? Math.round(obj.val) + '%'
-            : Math.round(obj.val);
-        }
+    let current = 0;
+    const duration = 1000;
+    const start = performance.now();
+
+    const step = (now) => {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      current = Math.round(eased * target);
+      if (numRef.current) {
+        numRef.current.textContent = typeof value === 'string' && value.includes('%')
+          ? current + '%'
+          : current;
       }
-    });
-    prevVal.current = target;
+      if (progress < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
   }, [value]);
 
   return (
@@ -73,35 +75,23 @@ export function Dashboard() {
   const streak = data.streak || { current: 0, best: 0 };
 
   useEffect(() => {
-    if (!containerRef.current) return;
-    try {
-      const items = containerRef.current.querySelectorAll('.card, .welcome-banner, .stats-grid');
-      if (items.length) {
-        animate(items, {
-          opacity: [0, 1],
-          translateY: [25, 0],
-          duration: 400,
-          delay: stagger(80),
-          ease: 'outQuad'
-        });
-      }
-      const scheduleItems = containerRef.current.querySelectorAll('.schedule-item');
-      if (scheduleItems.length) {
-        animate(scheduleItems, {
-          opacity: [0, 1],
-          translateX: [-30, 0],
-          duration: 350,
-          delay: stagger(50, { start: 400 }),
-          ease: 'outQuad'
-        });
-      }
-    } catch {}
+    animatePageIn(containerRef.current);
+    const scheduleItems = containerRef.current?.querySelectorAll('.schedule-item');
+    if (scheduleItems?.length) {
+      scheduleItems.forEach((el, i) => {
+        el.style.opacity = '0';
+        setTimeout(() => {
+          el.classList.add('anim-slide-left');
+          el.style.opacity = '';
+        }, 300 + i * 40);
+      });
+    }
   }, []);
 
   const daysLeftNum = typeof daysLeft === 'number' ? daysLeft : 0;
 
   return (
-    <div className="container" ref={containerRef} style={{opacity: 1}}>
+    <div className="container" ref={containerRef}>
       <div className="welcome-banner">
         <h1>{greeting}!</h1>
         <p>{daysText}</p>
@@ -190,19 +180,13 @@ function WeeklyProgress({ data }) {
   useEffect(() => {
     if (!barsRef.current) return;
     const fills = barsRef.current.querySelectorAll('.bar-fill');
-    animate(fills, {
-      height: ['0%', (el) => el.dataset.height || '3%'],
-      duration: 800,
-      delay: stagger(100),
-      ease: 'outElastic(1, 0.6)'
-    });
-    const labels = barsRef.current.querySelectorAll('.bar-day');
-    animate(labels, {
-      opacity: [0, 1],
-      translateY: [15, 0],
-      duration: 400,
-      delay: stagger(80),
-      ease: 'outQuad'
+    fills.forEach((el, i) => {
+      const targetHeight = el.dataset.height || '3%';
+      el.style.height = '3%';
+      setTimeout(() => {
+        el.style.transition = 'height 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)';
+        el.style.height = targetHeight;
+      }, i * 80);
     });
   }, []);
 

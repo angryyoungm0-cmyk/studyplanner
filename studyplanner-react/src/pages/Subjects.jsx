@@ -3,8 +3,7 @@ import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
 import { generateId } from '../hooks/useStudyData';
 import { getSubjectList } from '../data/syllabus';
-import { animate, stagger } from 'animejs';
-import { animateModal } from '../hooks/useAnimations';
+import { animatePageIn, animateModal } from '../hooks/useAnimations';
 
 export function Subjects() {
   const { data, updateData, showToast } = useApp();
@@ -19,21 +18,8 @@ export function Subjects() {
   const modalRef = useRef(null);
 
   useEffect(() => {
-    if (!containerRef.current) return;
-    try {
-      const cards = containerRef.current.querySelectorAll('.subject-card, .sp-card, .card');
-      if (cards.length) {
-        animate(cards, {
-          opacity: [0, 1],
-          translateY: [25, 0],
-          scale: [0.96, 1],
-          duration: 350,
-          delay: stagger(50),
-          ease: 'outQuad'
-        });
-      }
-    } catch {}
-  }, [data.subjects.length === 0]);
+    animatePageIn(containerRef.current);
+  }, []);
 
   useEffect(() => {
     if (showModal && modalRef.current) animateModal(modalRef.current);
@@ -99,26 +85,8 @@ export function Subjects() {
 
   const deleteSubject = (id) => {
     if (!confirm('Delete this subject and all its chapters?')) return;
-    const card = containerRef.current?.querySelector(`[data-subject-id="${id}"]`);
-    if (card) {
-      animate(card, {
-        opacity: [1, 0],
-        translateX: [-50, 0],
-        height: [card.offsetHeight, 0],
-        marginBottom: [10, 0],
-        paddingTop: [0, 0],
-        paddingBottom: [0, 0],
-        duration: 300,
-        ease: 'inQuad',
-        onComplete: () => {
-          updateData(prev => ({ ...prev, subjects: prev.subjects.filter(s => s.id !== id) }));
-          showToast(t('subjectsTitle') + ' deleted');
-        }
-      });
-    } else {
-      updateData(prev => ({ ...prev, subjects: prev.subjects.filter(s => s.id !== id) }));
-      showToast(t('subjectsTitle') + ' deleted');
-    }
+    updateData(prev => ({ ...prev, subjects: prev.subjects.filter(s => s.id !== id) }));
+    showToast(t('subjectsTitle') + ' deleted');
   };
 
   const toggleChapter = (subjectId, chapterIndex) => {
@@ -153,7 +121,7 @@ export function Subjects() {
   };
 
   return (
-    <div className="container" ref={containerRef} style={{opacity: 1}}>
+    <div className="container" ref={containerRef}>
       <div className="page-header">
         <h1>{t('subjectsTitle')}</h1>
         <div className="header-actions">

@@ -3,7 +3,7 @@ import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
 import { useScheduleGenerator } from '../hooks/useScheduleGenerator';
 import { formatDate } from '../hooks/useStudyData';
-import { animate, stagger } from 'animejs';
+import { animatePageIn } from '../hooks/useAnimations';
 
 export function GenerateSchedule() {
   const { data, updateData, showToast, navigateTo } = useApp();
@@ -24,23 +24,7 @@ export function GenerateSchedule() {
   const [holidayDate, setHolidayDate] = useState('');
 
   useEffect(() => {
-    if (!containerRef.current) return;
-    try {
-      const cards = containerRef.current.querySelectorAll('.card');
-      if (cards.length) {
-        animate(cards, {
-          opacity: [0, 1],
-          translateY: [20, 0],
-          duration: 350,
-          delay: stagger(80),
-          ease: 'outQuad'
-        });
-      }
-    } catch {
-      if (containerRef.current) {
-        containerRef.current.style.opacity = '1';
-      }
-    }
+    animatePageIn(containerRef.current);
   }, []);
 
   const saveTimings = () => {
@@ -79,7 +63,7 @@ export function GenerateSchedule() {
   const specificHolidays = data.holidays.filter(h => h !== 'weekends');
 
   return (
-    <div className="container" ref={containerRef} style={{opacity: 1}}>
+    <div className="container" ref={containerRef}>
       <h1 style={{marginBottom:'1.5rem'}}>{t('generateSchedule')}</h1>
 
       <div className="card">

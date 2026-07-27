@@ -1,144 +1,164 @@
 import { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
-import { generateId, formatDate, todayStr, daysBetween } from '../hooks/useStudyData';
-import { animate, stagger } from 'animejs';
-import { animateModal } from '../hooks/useAnimations';
+import { generateId, daysBetween, todayStr } from '../hooks/useStudyData';
+import { animatePageIn, animateModal } from '../hooks/useAnimations';
+
+const EXAM_TYPES = [
+  { id: 'unit-test', label: 'Unit Test' },
+  { id: 'midterm', label: 'Midterm' },
+  { id: 'prelims', label: 'Prelims' },
+  { id: 'final', label: 'Board Exam' },
+];
 
 export function Exams() {
   const { data, updateData, showToast } = useApp();
   const { t } = useI18n();
   const [showModal, setShowModal] = useState(false);
-  const [examName, setExamName] = useState('');
+  const [editId, setEditId] = useState(null);
+  const [name, setName] = useState('');
   const [subjectId, setSubjectId] = useState('');
-  const [examDate, setExamDate] = useState('');
-  const [examChapters, setExamChapters] = useState('all');
+  const [date, setDate] = useState('');
+  const [type, setType] = useState('unit-test');
   const containerRef = useRef(null);
   const modalRef = useRef(null);
 
   useEffect(() => {
-    if (!containerRef.current) return;
-    try {
-      const cards = containerRef.current.querySelectorAll('.exam-card');
-      if (cards.length) {
-        animate(cards, {
-          opacity: [0, 1],
-          translateX: [-20, 0],
-          scale: [0.97, 1],
-          duration: 300,
-          delay: stagger(50),
-          ease: 'outQuad'
-        });
-      }
-    } catch {}
-  }, [data.exams.length]);
+    animatePageIn(containerRef.current);
+  }, []);
 
   useEffect(() => {
     if (showModal && modalRef.current) animateModal(modalRef.current);
   }, [showModal]);
 
-  const addExam = () => {
-    if (!examName.trim() || !subjectId || !examDate) {
-      showToast('Fill in all fields!', 'error');
-      return;
+  const openAddModal = () => {
+    setEditId(null);
+    setName('');
+    setSubjectId(data.subjects[0]?.id || '');
+    setDate('');
+    setType('unit-test');
+    setShowModal(true);
+  };
+
+  const openEditModal = (exam) => {
+    setEditId(exam.id);
+    setName(exam.name);
+    setSubjectId(exam.subjectId || '');
+    setDate(exam.date);
+    setType(exam.type || 'unit-test');
+    setShowModal(true);
+  };
+
+  const handleSubmit = () => {
+    if (!name.trim() || !date) return;
+    const examData = {
+      id: editId || generateId(),
+      name: name.trim(),
+      subjectId,
+      date,
+      type,
+    };
+
+    if (editId) {
+      updateData(prev => ({
+        ...prev,
+        exams: prev.exams.map(e => e.id === editId ? examData : e)
+      }));
+      showToast('Exam updated!');
+    } else {
+      updateData(prev => ({ ...prev, exams: [...prev.exams, examData] }));
+      showToast('Exam added!');
     }
-    updateData(prev => ({
-      ...prev,
-      exams: [...prev.exams, {
-        id: generateId(),
-        name: examName.trim(),
-        subjectId,
-        date: examDate,
-        chapters: examChapters.trim() || 'all'
-      }]
-    }));
     setShowModal(false);
-    setExamName('');
-    setSubjectId('');
-    setExamDate('');
-    setExamChapters('all');
-    showToast(t('addExam') + '!');
   };
 
   const deleteExam = (id) => {
     if (!confirm('Delete this exam?')) return;
-    updateData(prev => ({
-      ...prev,
-      exams: prev.exams.filter(e => e.id !== id)
-    }));
-    showToast(t('exams') + ' deleted');
+    updateData(prev => ({ ...prev, exams: prev.exams.filter(e => e.id !== id) }));
+    showToast('Exam deleted');
   };
 
-  const sorted = [...data.exams].sort((a, b) => a.date.localeCompare(b.date));
-
   return (
-    <div className="container" ref={containerRef} style={{opacity: 1}}>
+    <div className="container" ref={containerRef}>
       <div className="page-header">
-        <h1>{t('exams')}</h1>
-        <button className="btn btn-primary" onClick={() => {
-          if (data.subjects.length === 0) { showToast('Add subjects first!', 'error'); return; }
-          setExamName(''); setSubjectId(data.subjects[0]?.id || ''); setExamDate(''); setExamChapters('all');
-          setShowModal(true);
-        }}>+ {t('addExam')}</button>
+        <h1>{t('examsTitle')}</h1>
+        <div className="header-actions">
+          <button className="btn btn-primary" onClick={openAddModal}>+ {t('addExam')}</button>
+        </div>
       </div>
 
-      {sorted.length === 0 ? (
-        <p className="empty-state">No exams added yet. Click "+ {t('addExam')}" to add your board exam dates!</p>
-      ) : (
-        sorted.map(exam => {
-          const days = daysBetween(todayStr(), exam.date);
-          const countdownClass = days > 30 ? 'countdown-safe' : days > 7 ? 'countdown-warning' : 'countdown-danger';
-          const countdownText = days > 0 ? `${days}d left` : days === 0 ? 'TODAY!' : 'Passed';
-          const subject = data.subjects.find(s => s.id === exam.subjectId);
-          return (
-            <div key={exam.id} className="exam-card">
-              <div className="exam-info">
-                <h3>{exam.name}</h3>
-                <p>{subject ? subject.name : 'Unknown'} &bull; {formatDate(exam.date)}</p>
-              </div>
-              <div style={{display:'flex',alignItems:'center',gap:'0.5rem'}}>
-                <span className={`exam-countdown ${countdownClass}`}>{countdownText}</span>
+      {data.exams.length === 0 && (
+        <p className="empty-state">{t('noExams')}</p>
+      )}
+
+      {data.exams.map(exam => {
+        const days = daysBetween(todayStr(), exam.date);
+        const daysText = days > 0 ? `${days} days left` : days === 0 ? 'TODAY' : `${Math.abs(days)} days ago`;
+        const subject = data.subjects.find(s => s.id === exam.subjectId);
+        const typeInfo = EXAM_TYPES.find(t => t.id === exam.type);
+        return (
+          <div key={exam.id} className="exam-card">
+            <div className="exam-top">
+              <span className="exam-badge">{typeInfo?.label || 'Exam'}</span>
+              <span className={`exam-countdown ${days <= 3 ? 'urgent' : days <= 7 ? 'soon' : ''}`}>{daysText}</span>
+            </div>
+            <h3>{exam.name}</h3>
+            {subject && <p style={{color:'var(--text-secondary)',fontSize:'0.85rem',marginTop:'0.25rem'}}>{subject.name}</p>}
+            <div className="exam-bottom">
+              <span className="exam-date">{formatDate(exam.date)}</span>
+              <div className="exam-actions">
+                <button className="btn btn-sm btn-secondary" onClick={() => openEditModal(exam)}>Edit</button>
                 <button className="btn btn-sm btn-danger" onClick={() => deleteExam(exam.id)}>Del</button>
               </div>
             </div>
-          );
-        })
-      )}
+          </div>
+        );
+      })}
 
       {showModal && (
         <div className="modal open" onClick={() => setShowModal(false)}>
           <div className="modal-content" ref={modalRef} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>{t('addExam')}</h2>
+              <h2>{editId ? 'Edit Exam' : t('addExam')}</h2>
               <button className="modal-close" onClick={() => setShowModal(false)}>&times;</button>
             </div>
             <div className="form-group">
               <label>Exam Name</label>
-              <input type="text" value={examName} onChange={e => setExamName(e.target.value)} placeholder="e.g. Mathematics Board Exam" />
+              <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Maths Prelim 1" />
             </div>
             <div className="form-group">
-              <label>Subject</label>
-              <select value={subjectId} onChange={e => setSubjectId(e.target.value)}>
-                {data.subjects.map(s => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
+              <label>Type</label>
+              <div style={{display:'flex',flexWrap:'wrap',gap:'0.5rem'}}>
+                {EXAM_TYPES.map(et => (
+                  <button key={et.id} className={`btn btn-sm ${type === et.id ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setType(et.id)}>
+                    {et.label}
+                  </button>
                 ))}
+              </div>
+            </div>
+            <div className="form-group">
+              <label>Subject (optional)</label>
+              <select value={subjectId} onChange={e => setSubjectId(e.target.value)}>
+                <option value="">No specific subject</option>
+                {data.subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
             </div>
             <div className="form-group">
-              <label>Exam Date</label>
-              <input type="date" value={examDate} onChange={e => setExamDate(e.target.value)} />
-            </div>
-            <div className="form-group">
-              <label>Chapters (comma numbers, or "all")</label>
-              <input type="text" value={examChapters} onChange={e => setExamChapters(e.target.value)} placeholder="all" />
+              <label>Date</label>
+              <input type="date" value={date} onChange={e => setDate(e.target.value)} />
             </div>
             <div className="form-actions">
               <button className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
-              <button className="btn btn-primary" onClick={addExam}>{t('addExam')}</button>
+              <button className="btn btn-primary" onClick={handleSubmit}>{editId ? 'Update' : 'Add'}</button>
             </div>
           </div>
         </div>
       )}
     </div>
   );
+}
+
+function formatDate(dateStr) {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 }
