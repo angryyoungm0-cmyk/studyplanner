@@ -1,10 +1,9 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
 import { useI18n } from '../context/I18nContext';
 import { useNotifications } from '../hooks/useNotifications';
 import { jsPDF } from 'jspdf';
-import { animatePageIn } from '../hooks/useAnimations';
 import { supabase } from '../lib/supabase';
 import { exportData, importData } from '../hooks/useStudyData';
 
@@ -13,15 +12,10 @@ export function Settings() {
   const { theme, toggleTheme } = useTheme();
   const { language, setLanguage, t } = useI18n();
   const { permission, requestPermission } = useNotifications(data);
-  const containerRef = useRef(null);
   const fileInputRef = useRef(null);
   const [syncEnabled, setSyncEnabled] = useState(!!data.supabaseUserId);
   const [syncing, setSyncing] = useState(false);
   const [lastSync, setLastSync] = useState(data.lastSyncAt || null);
-
-  useEffect(() => {
-    animatePageIn(containerRef.current);
-  }, []);
 
   const exportPDF = () => {
     const doc = new jsPDF();
@@ -153,7 +147,7 @@ export function Settings() {
   };
 
   return (
-    <div className="container" ref={containerRef}>
+    <div className="container">
       <h1 style={{marginBottom:'1.5rem'}}>{t('settingsTitle')}</h1>
 
       <div className="card settings-card">

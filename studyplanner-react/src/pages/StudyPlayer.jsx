@@ -1,22 +1,16 @@
 import { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
-import { animatePageIn, animateChatMessage } from '../hooks/useAnimations';
 
 export function StudyPlayer() {
   const { data, navigateTo } = useApp();
   const { t } = useI18n();
-  const containerRef = useRef(null);
   const chatEndRef = useRef(null);
   const [messages, setMessages] = useState([
     { role: 'assistant', text: 'Hi! I\'m your AI study assistant. Ask me about any topic or concept!' }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    animatePageIn(containerRef.current);
-  }, []);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -61,7 +55,7 @@ export function StudyPlayer() {
   };
 
   return (
-    <div className="container" ref={containerRef}>
+    <div className="container">
       <div className="sp-hero">
         <div className="sp-hero-content">
           <div className="sp-hero-badge">AI Powered</div>

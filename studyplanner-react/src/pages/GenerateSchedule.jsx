@@ -1,16 +1,14 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
 import { useScheduleGenerator } from '../hooks/useScheduleGenerator';
 import { formatDate } from '../hooks/useStudyData';
-import { animatePageIn } from '../hooks/useAnimations';
 
 export function GenerateSchedule() {
   const { data, updateData, showToast, navigateTo } = useApp();
   const { t } = useI18n();
   const { generateSchedule } = useScheduleGenerator();
   const s = data.settings;
-  const containerRef = useRef(null);
 
   const [studyStart, setStudyStart] = useState(s.studyStartTime);
   const [studyEnd, setStudyEnd] = useState(s.studyEndTime);
@@ -22,10 +20,6 @@ export function GenerateSchedule() {
   const [hBreakDur, setHBreakDur] = useState(s.holidayBreakDuration || 15);
   const [weekendsHoliday, setWeekendsHoliday] = useState(data.holidays.includes('weekends'));
   const [holidayDate, setHolidayDate] = useState('');
-
-  useEffect(() => {
-    animatePageIn(containerRef.current);
-  }, []);
 
   const saveTimings = () => {
     updateData(prev => ({
@@ -63,7 +57,7 @@ export function GenerateSchedule() {
   const specificHolidays = data.holidays.filter(h => h !== 'weekends');
 
   return (
-    <div className="container" ref={containerRef}>
+    <div className="container">
       <h1 style={{marginBottom:'1.5rem'}}>{t('generateSchedule')}</h1>
 
       <div className="card">

@@ -1,18 +1,12 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
 import { todayStr, formatDate } from '../hooks/useStudyData';
-import { animatePageIn } from '../hooks/useAnimations';
 
 export function Schedule() {
   const { data, updateData, showToast } = useApp();
   const { t } = useI18n();
-  const containerRef = useRef(null);
   const [selectedDate, setSelectedDate] = useState(todayStr());
-
-  useEffect(() => {
-    animatePageIn(containerRef.current);
-  }, []);
 
   const schedule = data.schedule[selectedDate] || [];
   const completed = data.completedTasks[selectedDate] || {};
@@ -50,7 +44,7 @@ export function Schedule() {
   };
 
   return (
-    <div className="container" ref={containerRef}>
+    <div className="container">
       <h1 style={{marginBottom:'1rem'}}>{t('scheduleTitle')}</h1>
 
       <div className="card">

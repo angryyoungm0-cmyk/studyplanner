@@ -1,7 +1,6 @@
-import { useRef, useEffect } from 'react';
+import { useRef } from 'react';
 import { useApp } from './context/AppContext';
 import { useNotifications } from './hooks/useNotifications';
-import { animateToast } from './hooks/useAnimations';
 import { Navbar } from './components/Navbar';
 import { BottomNav } from './components/BottomNav';
 import { Dashboard } from './pages/Dashboard';
@@ -17,10 +16,6 @@ function AppContent() {
   const toastRef = useRef(null);
 
   useNotifications();
-
-  useEffect(() => {
-    if (toast.visible) animateToast(toastRef.current);
-  }, [toast.visible]);
 
   const renderPage = () => {
     switch (currentPage) {

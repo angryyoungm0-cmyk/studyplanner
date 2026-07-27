@@ -1,8 +1,7 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
-import { generateId, daysBetween, todayStr } from '../hooks/useStudyData';
-import { animatePageIn, animateModal } from '../hooks/useAnimations';
+import { generateId, daysBetween, todayStr, formatDate } from '../hooks/useStudyData';
 
 const EXAM_TYPES = [
   { id: 'unit-test', label: 'Unit Test' },
@@ -20,16 +19,6 @@ export function Exams() {
   const [subjectId, setSubjectId] = useState('');
   const [date, setDate] = useState('');
   const [type, setType] = useState('unit-test');
-  const containerRef = useRef(null);
-  const modalRef = useRef(null);
-
-  useEffect(() => {
-    animatePageIn(containerRef.current);
-  }, []);
-
-  useEffect(() => {
-    if (showModal && modalRef.current) animateModal(modalRef.current);
-  }, [showModal]);
 
   const openAddModal = () => {
     setEditId(null);
@@ -79,7 +68,7 @@ export function Exams() {
   };
 
   return (
-    <div className="container" ref={containerRef}>
+    <div className="container">
       <div className="page-header">
         <h1>{t('examsTitle')}</h1>
         <div className="header-actions">
@@ -95,7 +84,7 @@ export function Exams() {
         const days = daysBetween(todayStr(), exam.date);
         const daysText = days > 0 ? `${days} days left` : days === 0 ? 'TODAY' : `${Math.abs(days)} days ago`;
         const subject = data.subjects.find(s => s.id === exam.subjectId);
-        const typeInfo = EXAM_TYPES.find(t => t.id === exam.type);
+        const typeInfo = EXAM_TYPES.find(et => et.id === exam.type);
         return (
           <div key={exam.id} className="exam-card">
             <div className="exam-top">
@@ -117,7 +106,7 @@ export function Exams() {
 
       {showModal && (
         <div className="modal open" onClick={() => setShowModal(false)}>
-          <div className="modal-content" ref={modalRef} onClick={e => e.stopPropagation()}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{editId ? 'Edit Exam' : t('addExam')}</h2>
               <button className="modal-close" onClick={() => setShowModal(false)}>&times;</button>
@@ -156,9 +145,4 @@ export function Exams() {
       )}
     </div>
   );
-}
-
-function formatDate(dateStr) {
-  const d = new Date(dateStr);
-  return d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 }

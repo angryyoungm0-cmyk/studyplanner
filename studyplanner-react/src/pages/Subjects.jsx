@@ -3,7 +3,6 @@ import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
 import { generateId } from '../hooks/useStudyData';
 import { getSubjectList } from '../data/syllabus';
-import { animatePageIn, animateModal } from '../hooks/useAnimations';
 
 export function Subjects() {
   const { data, updateData, showToast } = useApp();
@@ -14,16 +13,6 @@ export function Subjects() {
   const [color, setColor] = useState('#4CAF50');
   const [chapters, setChapters] = useState(['']);
   const [openSubject, setOpenSubject] = useState(null);
-  const containerRef = useRef(null);
-  const modalRef = useRef(null);
-
-  useEffect(() => {
-    animatePageIn(containerRef.current);
-  }, []);
-
-  useEffect(() => {
-    if (showModal && modalRef.current) animateModal(modalRef.current);
-  }, [showModal]);
 
   const openAddModal = () => {
     setEditId(null);
@@ -121,7 +110,7 @@ export function Subjects() {
   };
 
   return (
-    <div className="container" ref={containerRef}>
+    <div className="container">
       <div className="page-header">
         <h1>{t('subjectsTitle')}</h1>
         <div className="header-actions">
@@ -195,7 +184,7 @@ export function Subjects() {
 
       {showModal && (
         <div className="modal open" onClick={() => setShowModal(false)}>
-          <div className="modal-content" ref={modalRef} onClick={e => e.stopPropagation()}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{editId ? 'Edit Subject' : t('addSubject')}</h2>
               <button className="modal-close" onClick={() => setShowModal(false)}>&times;</button>

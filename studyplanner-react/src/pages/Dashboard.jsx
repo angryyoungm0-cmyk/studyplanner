@@ -2,7 +2,6 @@ import { useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
 import { formatDate, todayStr, daysBetween, getFirstExamDate } from '../hooks/useStudyData';
-import { animatePageIn } from '../hooks/useAnimations';
 
 function AnimatedStat({ value, label }) {
   const numRef = useRef(null);
@@ -40,7 +39,7 @@ function AnimatedStat({ value, label }) {
 export function Dashboard() {
   const { data } = useApp();
   const { t } = useI18n();
-  const containerRef = useRef(null);
+
   const hour = new Date().getHours();
   let greeting = t('goodMorning');
   if (hour >= 12 && hour < 17) greeting = t('goodAfternoon');
@@ -73,25 +72,10 @@ export function Dashboard() {
   const progressDisplay = totalChapters > 0 ? progressPct + '%' : '0%';
 
   const streak = data.streak || { current: 0, best: 0 };
-
-  useEffect(() => {
-    animatePageIn(containerRef.current);
-    const scheduleItems = containerRef.current?.querySelectorAll('.schedule-item');
-    if (scheduleItems?.length) {
-      scheduleItems.forEach((el, i) => {
-        el.style.opacity = '0';
-        setTimeout(() => {
-          el.classList.add('anim-slide-left');
-          el.style.opacity = '';
-        }, 300 + i * 40);
-      });
-    }
-  }, []);
-
   const daysLeftNum = typeof daysLeft === 'number' ? daysLeft : 0;
 
   return (
-    <div className="container" ref={containerRef}>
+    <div className="container">
       <div className="welcome-banner">
         <h1>{greeting}!</h1>
         <p>{daysText}</p>
@@ -156,7 +140,6 @@ export function Dashboard() {
 }
 
 function WeeklyProgress({ data }) {
-  const barsRef = useRef(null);
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const now = new Date();
   const startOfWeek = new Date(now);
@@ -177,32 +160,15 @@ function WeeklyProgress({ data }) {
     weekData.push({ day: days[i], total, done, isToday: ds === todayStr() });
   }
 
-  useEffect(() => {
-    if (!barsRef.current) return;
-    const fills = barsRef.current.querySelectorAll('.bar-fill');
-    fills.forEach((el, i) => {
-      const targetHeight = el.dataset.height || '3%';
-      el.style.height = '3%';
-      setTimeout(() => {
-        el.style.transition = 'height 0.6s cubic-bezier(0.34, 1.56, 0.64, 1)';
-        el.style.height = targetHeight;
-      }, i * 80);
-    });
-  }, []);
-
   return (
-    <div className="weekly-bar" ref={barsRef}>
+    <div className="weekly-bar">
       {weekData.map(w => {
         const heightPct = w.total > 0 ? (w.done / maxTasks) * 100 : 0;
         const finalH = Math.max(heightPct, 3);
         return (
           <div key={w.day} className="bar-day">
             <div className="bar-value">{w.done}/{w.total}</div>
-            <div
-              className={`bar-fill ${w.isToday ? 'today' : ''}`}
-              style={{ height: '3%' }}
-              data-height={`${finalH}%`}
-            />
+            <div className="bar-fill" style={{ height: `${finalH}%` }} />
             <div className="bar-label">{w.day}</div>
           </div>
         );
