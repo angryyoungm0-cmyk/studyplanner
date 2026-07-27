@@ -12,11 +12,65 @@
     <meta name="description" content="AI-powered study planner for Class 10 Maharashtra Board students" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>StudyPlanner - Class 10 AI Study Assistant</title>
+    <style>
+      #loading-screen {
+        position: fixed;
+        inset: 0;
+        background: #0f172a;
+        color: #f1f5f9;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 99999;
+        font-family: system-ui, sans-serif;
+      }
+      #loading-screen h1 { font-size: 1.4rem; margin-bottom: 0.5rem; }
+      #loading-screen p { color: #94a3b8; font-size: 0.9rem; }
+      #error-display {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: #1e293b;
+        color: #f1f5f9;
+        padding: 2rem;
+        font-family: monospace;
+        font-size: 0.8rem;
+        overflow: auto;
+        z-index: 99999;
+        white-space: pre-wrap;
+        word-break: break-all;
+      }
+    </style>
   </head>
   <body>
+    <div id="loading-screen">
+      <h1>StudyPlanner</h1>
+      <p>Loading...</p>
+    </div>
+    <div id="error-display"></div>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
     <script>
+      window.onerror = function(msg, url, line, col, error) {
+        var el = document.getElementById('error-display');
+        var ls = document.getElementById('loading-screen');
+        if (el && ls) {
+          ls.style.display = 'none';
+          el.style.display = 'block';
+          el.textContent = 'Error: ' + msg + '\nFile: ' + url + '\nLine: ' + line + ':' + col + '\n\n' + (error ? error.stack || error : '');
+        }
+        return false;
+      };
+      window.addEventListener('unhandledrejection', function(e) {
+        var el = document.getElementById('error-display');
+        var ls = document.getElementById('loading-screen');
+        if (el && ls) {
+          ls.style.display = 'none';
+          el.style.display = 'block';
+          el.textContent = 'Promise Error: ' + (e.reason ? e.reason.message || e.reason : 'unknown');
+        }
+      });
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/studyplanner/sw.js');
       }

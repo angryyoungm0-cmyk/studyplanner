@@ -1,21 +1,13 @@
-const CACHE_NAME = 'studyplanner-v2';
-const ASSETS = [
-  '/studyplanner/',
-  '/studyplanner/logo.png',
-  '/studyplanner/index.html'
-];
+const CACHE_NAME = 'studyplanner-v3';
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
-  );
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+      Promise.all(keys.map(k => caches.delete(k)))
     )
   );
   self.clients.claim();
@@ -23,7 +15,7 @@ self.addEventListener('activate', (e) => {
 
 self.addEventListener('fetch', (e) => {
   e.respondWith(
-    caches.match(e.request).then(res => res || fetch(e.request))
+    fetch(e.request).catch(() => caches.match(e.request))
   );
 });
 
