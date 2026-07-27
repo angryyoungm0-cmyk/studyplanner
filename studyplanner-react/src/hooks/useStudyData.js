@@ -34,10 +34,28 @@ export function getDefaultData() {
 
 function loadSync() {
   try {
-    return JSON.parse(localStorage.getItem(DB_KEY)) || getDefaultData();
+    const raw = JSON.parse(localStorage.getItem(DB_KEY));
+    if (raw) return migrateData(raw);
+    return getDefaultData();
   } catch {
     return getDefaultData();
   }
+}
+
+function migrateData(data) {
+  const defaults = getDefaultData();
+  const merged = { ...defaults, ...data };
+  // Ensure nested objects have all fields
+  merged.settings = { ...defaults.settings, ...(data.settings || {}) };
+  merged.streak = { ...defaults.streak, ...(data.streak || {}) };
+  // Ensure arrays exist
+  if (!Array.isArray(merged.holidays)) merged.holidays = [];
+  if (!Array.isArray(merged.subjects)) merged.subjects = [];
+  if (!Array.isArray(merged.exams)) merged.exams = [];
+  // Ensure objects exist
+  if (typeof merged.schedule !== 'object' || merged.schedule === null) merged.schedule = {};
+  if (typeof merged.completedTasks !== 'object' || merged.completedTasks === null) merged.completedTasks = {};
+  return merged;
 }
 
 export function useStudyData() {
@@ -47,7 +65,7 @@ export function useStudyData() {
   useEffect(() => {
     loadData().then(idbData => {
       if (idbData) {
-        setData(idbData);
+        setData(migrateData(idbData));
       }
       setLoaded(true);
     });

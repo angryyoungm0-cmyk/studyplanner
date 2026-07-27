@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
 import { useScheduleGenerator } from '../hooks/useScheduleGenerator';
@@ -8,18 +8,35 @@ export function GenerateSchedule() {
   const { data, updateData, showToast, navigateTo } = useApp();
   const { t } = useI18n();
   const { generateSchedule } = useScheduleGenerator();
+
+  // Defensive check: if data doesn't have expected shape, render safe fallback
+  if (!data || !data.settings || !Array.isArray(data.holidays)) {
+    return (
+      <div className="container">
+        <div style={{background:'#22c55e',padding:'2rem',color:'white',fontSize:'1.5rem',borderRadius:'12px',textAlign:'center'}}>
+          Loading...
+        </div>
+      </div>
+    );
+  }
+
   const s = data.settings;
 
-  const [studyStart, setStudyStart] = useState(s.studyStartTime);
-  const [studyEnd, setStudyEnd] = useState(s.studyEndTime);
-  const [schoolStart, setSchoolStart] = useState(s.schoolStart);
-  const [schoolEnd, setSchoolEnd] = useState(s.schoolEnd);
-  const [sessionDur, setSessionDur] = useState(s.sessionDuration);
-  const [breakDur, setBreakDur] = useState(s.breakDuration);
+  const [studyStart, setStudyStart] = useState(s.studyStartTime || '07:00');
+  const [studyEnd, setStudyEnd] = useState(s.studyEndTime || '22:00');
+  const [schoolStart, setSchoolStart] = useState(s.schoolStart || '10:30');
+  const [schoolEnd, setSchoolEnd] = useState(s.schoolEnd || '18:20');
+  const [sessionDur, setSessionDur] = useState(s.sessionDuration || 45);
+  const [breakDur, setBreakDur] = useState(s.breakDuration || 10);
   const [hSessionDur, setHSessionDur] = useState(s.holidaySessionDuration || 60);
   const [hBreakDur, setHBreakDur] = useState(s.holidayBreakDuration || 15);
-  const [weekendsHoliday, setWeekendsHoliday] = useState(data.holidays.includes('weekends'));
+  const [weekendsHoliday, setWeekendsHoliday] = useState(
+    data.holidays && data.holidays.includes('weekends')
+  );
   const [holidayDate, setHolidayDate] = useState('');
+
+  // Safety: prevent crash if data.holidays is somehow not an array
+  const holidays = Array.isArray(data.holidays) ? data.holidays.filter(h => h !== 'weekends') : [];
 
   const saveTimings = () => {
     updateData(prev => ({
@@ -36,28 +53,30 @@ export function GenerateSchedule() {
         holidayBreakDuration: parseInt(hBreakDur) || 15
       },
       holidays: weekendsHoliday
-        ? [...prev.holidays.filter(h => h !== 'weekends'), 'weekends']
-        : prev.holidays.filter(h => h !== 'weekends')
+        ? [...(prev.holidays || []).filter(h => h !== 'weekends'), 'weekends']
+        : (prev.holidays || []).filter(h => h !== 'weekends')
     }));
     showToast(t('saveSettings') + '!');
   };
 
   const addHoliday = () => {
     if (!holidayDate) { showToast('Pick a date first', 'error'); return; }
-    if (data.holidays.includes(holidayDate)) { showToast('Already a holiday', 'error'); return; }
-    updateData(prev => ({ ...prev, holidays: [...prev.holidays, holidayDate] }));
+    if ((data.holidays || []).includes(holidayDate)) { showToast('Already a holiday', 'error'); return; }
+    updateData(prev => ({ ...prev, holidays: [...(prev.holidays || []), holidayDate] }));
     setHolidayDate('');
     showToast('Holiday added!');
   };
 
   const removeHoliday = (date) => {
-    updateData(prev => ({ ...prev, holidays: prev.holidays.filter(h => h !== date) }));
+    updateData(prev => ({ ...prev, holidays: (prev.holidays || []).filter(h => h !== date) }));
   };
-
-  const specificHolidays = data.holidays.filter(h => h !== 'weekends');
 
   return (
     <div className="container">
+      <div style={{background:'#22c55e',padding:'1rem',color:'white',fontSize:'1.2rem',borderRadius:'12px',textAlign:'center',marginBottom:'1rem'}}>
+        Generate Page Loaded
+      </div>
+
       <h1 style={{marginBottom:'1.5rem'}}>{t('generateSchedule')}</h1>
 
       <div className="card">
@@ -111,10 +130,10 @@ export function GenerateSchedule() {
           <input type="date" value={holidayDate} onChange={e => setHolidayDate(e.target.value)} style={{flex:1}} />
           <button className="btn btn-primary btn-sm" onClick={addHoliday}>Add</button>
         </div>
-        {specificHolidays.length === 0 ? (
+        {holidays.length === 0 ? (
           <p style={{color:'var(--text-muted)',fontSize:'0.85rem'}}>No specific holidays added yet.</p>
         ) : (
-          specificHolidays.sort().map(h => (
+          holidays.sort().map(h => (
             <div key={h} className="holiday-item" style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'0.5rem 0',borderBottom:'1px solid var(--border)'}}>
               <span>{formatDate(h)}</span>
               <button className="btn btn-sm btn-danger" onClick={() => removeHoliday(h)}>&times;</button>
