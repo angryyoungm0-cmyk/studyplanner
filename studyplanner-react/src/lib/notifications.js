@@ -1,5 +1,3 @@
-import { saveData } from './db';
-
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY || '';
 
 function urlBase64ToUint8Array(base64String) {

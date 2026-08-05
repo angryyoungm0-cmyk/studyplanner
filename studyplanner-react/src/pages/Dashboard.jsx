@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
-import { formatDate, todayStr, daysBetween, getFirstExamDate } from '../hooks/useStudyData';
+import { todayStr, daysBetween, getFirstExamDate } from '../hooks/useStudyData';
 
 function AnimatedStat({ value, label }) {
   const numRef = useRef(null);

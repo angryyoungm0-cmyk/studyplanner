@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { useApp } from '../context/AppContext';
 import { 
   todayStr, parseDate, toLocalDateStr, timeToMinutes, minutesToTime, 
-  generateId, isHoliday, getFirstExamDate
+  isHoliday, getFirstExamDate
 } from './useStudyData';
 
 export function useScheduleGenerator() {

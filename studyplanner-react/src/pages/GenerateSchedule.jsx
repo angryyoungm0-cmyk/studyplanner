@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { useI18n } from '../context/I18nContext';
 import { useScheduleGenerator } from '../hooks/useScheduleGenerator';
@@ -9,40 +9,27 @@ export function GenerateSchedule() {
   const { t } = useI18n();
   const { generateSchedule } = useScheduleGenerator();
 
-  // Defensive check: if data doesn't have expected shape, render safe fallback
-  if (!data || !data.settings || !Array.isArray(data.holidays)) {
-    return (
-      <div className="container">
-        <div style={{background:'#22c55e',padding:'2rem',color:'white',fontSize:'1.5rem',borderRadius:'12px',textAlign:'center'}}>
-          Loading...
-        </div>
-      </div>
-    );
-  }
+  const settings = data && data.settings ? data.settings : {};
+  const holidaysArr = Array.isArray(data && data.holidays) ? data.holidays : [];
 
-  const s = data.settings;
-
-  const [studyStart, setStudyStart] = useState(s.studyStartTime || '07:00');
-  const [studyEnd, setStudyEnd] = useState(s.studyEndTime || '22:00');
-  const [schoolStart, setSchoolStart] = useState(s.schoolStart || '10:30');
-  const [schoolEnd, setSchoolEnd] = useState(s.schoolEnd || '18:20');
-  const [sessionDur, setSessionDur] = useState(s.sessionDuration || 45);
-  const [breakDur, setBreakDur] = useState(s.breakDuration || 10);
-  const [hSessionDur, setHSessionDur] = useState(s.holidaySessionDuration || 60);
-  const [hBreakDur, setHBreakDur] = useState(s.holidayBreakDuration || 15);
-  const [weekendsHoliday, setWeekendsHoliday] = useState(
-    data.holidays && data.holidays.includes('weekends')
-  );
+  const [studyStart, setStudyStart] = useState(settings.studyStartTime || '07:00');
+  const [studyEnd, setStudyEnd] = useState(settings.studyEndTime || '22:00');
+  const [schoolStart, setSchoolStart] = useState(settings.schoolStart || '10:30');
+  const [schoolEnd, setSchoolEnd] = useState(settings.schoolEnd || '18:20');
+  const [sessionDur, setSessionDur] = useState(settings.sessionDuration || 45);
+  const [breakDur, setBreakDur] = useState(settings.breakDuration || 10);
+  const [hSessionDur, setHSessionDur] = useState(settings.holidaySessionDuration || 60);
+  const [hBreakDur, setHBreakDur] = useState(settings.holidayBreakDuration || 15);
+  const [weekendsHoliday, setWeekendsHoliday] = useState(holidaysArr.includes('weekends'));
   const [holidayDate, setHolidayDate] = useState('');
 
-  // Safety: prevent crash if data.holidays is somehow not an array
-  const holidays = Array.isArray(data.holidays) ? data.holidays.filter(h => h !== 'weekends') : [];
+  const holidays = holidaysArr.filter(h => h !== 'weekends');
 
   const saveTimings = () => {
     updateData(prev => ({
       ...prev,
       settings: {
-        ...prev.settings,
+        ...(prev.settings || {}),
         studyStartTime: studyStart,
         studyEndTime: studyEnd,
         schoolStart,
@@ -61,7 +48,7 @@ export function GenerateSchedule() {
 
   const addHoliday = () => {
     if (!holidayDate) { showToast('Pick a date first', 'error'); return; }
-    if ((data.holidays || []).includes(holidayDate)) { showToast('Already a holiday', 'error'); return; }
+    if (holidaysArr.includes(holidayDate)) { showToast('Already a holiday', 'error'); return; }
     updateData(prev => ({ ...prev, holidays: [...(prev.holidays || []), holidayDate] }));
     setHolidayDate('');
     showToast('Holiday added!');
@@ -73,10 +60,6 @@ export function GenerateSchedule() {
 
   return (
     <div className="container">
-      <div style={{background:'#22c55e',padding:'1rem',color:'white',fontSize:'1.2rem',borderRadius:'12px',textAlign:'center',marginBottom:'1rem'}}>
-        Generate Page Loaded
-      </div>
-
       <h1 style={{marginBottom:'1.5rem'}}>{t('generateSchedule')}</h1>
 
       <div className="card">
